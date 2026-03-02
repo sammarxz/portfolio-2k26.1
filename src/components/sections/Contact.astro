@@ -1,0 +1,205 @@
+---
+import Container from "../layout/Container.astro";
+import Button from "../ui/Button.astro";
+import HoverList from "../ui/HoverList.astro";
+import SectionLabel from "../ui/SectionLabel.astro";
+import { Icon } from "astro-icon/components";
+
+const FORMSPREE_ID = import.meta.env.PUBLIC_FORMSPREE_ID;
+
+const links = [
+  {
+    label: "X.com",
+    handle: "@sammarxz",
+    url: "https://x.com/sammarxz",
+    icon: "simple-icons:x",
+  },
+  {
+    label: "GitHub",
+    handle: "@sammarxz",
+    url: "https://github.com/sammarxz",
+    icon: "simple-icons:github",
+  },
+  {
+    label: "LinkedIn",
+    handle: "/in/sammarxz",
+    url: "https://linkedin.com/in/sammarxz",
+    icon: "simple-icons:linkedin",
+  },
+  {
+    label: "Email",
+    handle: "sammarxz@proton.me",
+    url: "mailto:sammarxz@proton.me",
+    icon: "lucide:mail",
+  },
+];
+
+const inputClass =
+  "w-full rounded-xl bg-surface border border-wire px-4 py-3 text-base text-ink placeholder:text-mute focus:outline-none focus:border-edge hover:border-edge shadow-(--shadow-card-inset) transition-colors";
+---
+
+<section class="animate-in delay-900">
+  <Container>
+    <SectionLabel as="h2">Contact</SectionLabel>
+    <p class="mb-6 text-base text-dim">
+      You can contact me using the form or via the links below.
+    </p>
+
+    <div class="flex flex-col gap-6">
+      <form
+        id="contact-form"
+        action={`https://formspree.io/f/${FORMSPREE_ID}`}
+        method="POST"
+        class="mb-2 flex flex-col gap-4"
+        novalidate
+      >
+        <div class="flex flex-col sm:flex-row gap-4">
+          <label class="flex flex-col gap-1.5 w-full">
+            <span class="text-xs font-medium text-mute uppercase tracking-wide">
+              Name
+            </span>
+            <input
+              type="text"
+              name="name"
+              placeholder="Your name"
+              required
+              autocomplete="name"
+              class={inputClass}
+            />
+          </label>
+          <label class="flex flex-col gap-1.5 w-full">
+            <span class="text-xs font-medium text-mute uppercase tracking-wide">
+              Email
+            </span>
+            <input
+              type="email"
+              name="email"
+              placeholder="your@email.com"
+              required
+              autocomplete="email"
+              class={inputClass}
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-mute uppercase tracking-wide">
+            Message
+          </span>
+          <textarea
+            name="message"
+            placeholder="Tell me about your project..."
+            rows="5"
+            required
+            class={inputClass + " resize-y"}></textarea>
+        </label>
+
+        <div class="flex items-center justify-between">
+          <Button type="submit" variant="secondary" class="w-full sm:w-auto">
+            Send message
+          </Button>
+          <span
+            class="hidden sm:flex items-center gap-1.5 text-sm text-mute"
+            aria-hidden="true"
+          >
+            or
+            <Icon
+              name="lucide:corner-down-left"
+              width={12}
+              height={12}
+              class="translate-y-px"
+            />
+            Enter to send
+          </span>
+        </div>
+
+        <div role="status" aria-live="polite">
+          <p id="form-success" class="hidden text-sm text-accent">
+            Message sent! I'll get back to you soon.
+          </p>
+          <p id="form-error" class="hidden text-sm text-red-400">
+            Something went wrong. Please try again.
+          </p>
+        </div>
+      </form>
+
+      <HoverList class="flex flex-col">
+        {
+          links.map((link) => (
+            <a
+              href={link.url}
+              target={link.url.startsWith("http") ? "_blank" : undefined}
+              rel={
+                link.url.startsWith("http") ? "noopener noreferrer" : undefined
+              }
+              class="group relative z-10 flex items-center justify-between py-2 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <Icon
+                  name={link.icon}
+                  width={20}
+                  height={20}
+                  class="text-mute"
+                  aria-hidden="true"
+                />
+                <span class="text-base text-dim group-hover:text-ink">
+                  {link.label}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-base text-dim">{link.handle}</span>
+                <Icon
+                  name="lucide:arrow-up-right"
+                  width={20}
+                  height={20}
+                  class="text-mute transition-colors group-hover:text-dim"
+                  aria-hidden="true"
+                />
+              </div>
+            </a>
+          ))
+        }
+      </HoverList>
+    </div>
+  </Container>
+</section>
+
+<script>
+  const form = document.getElementById("contact-form") as HTMLFormElement;
+  const submitBtn = form?.querySelector(
+    'button[type="submit"]',
+  ) as HTMLButtonElement;
+  const successMsg = document.getElementById("form-success");
+  const errorMsg = document.getElementById("form-error");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = "Sending…";
+    submitBtn.disabled = true;
+    successMsg?.classList.add("hidden");
+    errorMsg?.classList.add("hidden");
+
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+
+      if (res.ok) {
+        form.reset();
+        successMsg?.classList.remove("hidden");
+        submitBtn.textContent = "Sent!";
+      } else {
+        throw new Error();
+      }
+    } catch {
+      errorMsg?.classList.remove("hidden");
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+</script>
