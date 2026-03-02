@@ -3,6 +3,12 @@
 @import "@fontsource/geist-mono";
 @plugin "@tailwindcss/typography";
 
+@font-face {
+  font-family: "Brittany Signature";
+  src: url("/fonts/BrittanySignature.ttf") format("truetype");
+  font-display: swap;
+}
+
 @theme {
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Fira Code', monospace;
