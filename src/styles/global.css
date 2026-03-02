@@ -41,6 +41,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
   body { min-height: 100vh; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.2s !important;
+      animation-delay: 0s !important;
+      transition-duration: 0.2s !important;
+    }
+  }
 }
 
 @keyframes blurFadeIn {
