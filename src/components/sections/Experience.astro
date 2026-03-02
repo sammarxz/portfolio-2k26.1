@@ -4,13 +4,7 @@ import Button from "../ui/Button.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
 import experiences from "../../data/experience.json";
-
-interface ExperienceItem {
-  period: string;
-  role: string;
-  company: string;
-  description: string;
-}
+import type { Experience } from "../../types/data";
 ---
 
 <section class="animate-in delay-650">

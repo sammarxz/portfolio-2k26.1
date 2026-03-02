@@ -4,13 +4,7 @@ import HoverList from "../ui/HoverList.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
 import ventures from "../../data/ventures.json";
-
-interface Venture {
-  name: string;
-  description: string;
-  url: string;
-  logo: string;
-}
+import type { Venture } from "../../types/data";
 ---
 
 <section class="animate-in delay-700">
