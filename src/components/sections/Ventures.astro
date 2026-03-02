@@ -1,0 +1,51 @@
+---
+import Container from "../layout/Container.astro";
+import HoverList from "../ui/HoverList.astro";
+import SectionLabel from "../ui/SectionLabel.astro";
+import { Icon } from "astro-icon/components";
+import ventures from "../../data/ventures.json";
+
+interface Venture {
+  name: string;
+  description: string;
+  url: string;
+  logo: string;
+}
+---
+
+<section class="animate-in delay-700">
+  <Container>
+    <SectionLabel>Ventures</SectionLabel>
+    <HoverList class="flex flex-col">
+      {
+        ventures.map((v) => (
+          <a
+            href={v.url}
+            class="group relative z-10 flex items-center gap-4 py-4 transition-colors"
+          >
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl overflow-hidden border border-white/4 shadow-(--shadow-card-inset)">
+              <img
+                src={`/images/ventures/${v.logo}`}
+                alt={v.name}
+                class="w-full h-full object-cover"
+              />
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-ink">{v.name}</p>
+              <p class="text-base text-mute">{v.description}</p>
+            </div>
+
+            <Icon
+              name="lucide:arrow-up-right"
+              width={20}
+              height={20}
+              class="shrink-0 text-mute transition-colors group-hover:text-ink"
+              aria-hidden="true"
+            />
+          </a>
+        ))
+      }
+    </HoverList>
+  </Container>
+</section>
