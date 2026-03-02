@@ -1,0 +1,82 @@
+@import "tailwindcss";
+@import "@fontsource/geist-sans";
+@import "@fontsource/geist-mono";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Fira Code', monospace;
+
+  --color-canvas:  #0d0d0d;
+  --color-surface: #141414;
+  --color-lift:    #1f1f1f;
+  --color-overlay: #1c1c1c;
+
+  --color-wire:  #262626;
+  --color-rim:   #333333;
+  --color-edge:  #404040;
+
+  --color-ink:   #ffffff;
+  --color-dim:   #a3a3a3;
+  --color-mute:  #8f8f8f;
+  --color-ghost: #4d4d4d;
+  --color-soft:  #d4d4d4;
+
+  --color-accent: #22c55e;
+}
+
+@layer base {
+  :root {
+    --shadow-card:        0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.2);
+    --shadow-card-inset:  inset 0 1px 0 rgba(255,255,255,0.05);
+    --shadow-card-full:   var(--shadow-card), var(--shadow-card-inset);
+    --shadow-btn-inset:   inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.2);
+    --shadow-btn-active:  inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body { min-height: 100vh; }
+}
+
+@keyframes blurFadeIn {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@utility animate-in {
+  opacity: 0;
+  animation: blurFadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@utility delay-100 { animation-delay: 100ms; }
+@utility delay-200 { animation-delay: 200ms; }
+@utility delay-300 { animation-delay: 300ms; }
+@utility delay-400 { animation-delay: 400ms; }
+@utility delay-500 { animation-delay: 500ms; }
+@utility delay-600 { animation-delay: 600ms; }
+@utility delay-650 { animation-delay: 650ms; }
+@utility delay-700 { animation-delay: 700ms; }
+@utility delay-800 { animation-delay: 800ms; }
+@utility delay-900 { animation-delay: 900ms; }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@utility animate-marquee {
+  animation: marquee 25s linear infinite;
+}
