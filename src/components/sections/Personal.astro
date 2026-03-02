@@ -1,0 +1,125 @@
+---
+import Container from "../layout/Container.astro";
+import SectionLabel from "../ui/SectionLabel.astro";
+import { Icon } from "astro-icon/components";
+import personal from "../../data/personal.json";
+
+const { photos, podcast } = personal;
+---
+
+<section>
+  <Container>
+    <SectionLabel as="h2" class="animate-in delay-100">Personal</SectionLabel>
+    <p class="mb-6 leading-relaxed text-dim animate-in delay-150">
+      In my free time, I enjoy spend time with my family, go to walk with my
+      dogs, read books, and sharing my learnings on my podcast.
+    </p>
+
+    <!-- Podcast Widget -->
+    <div class="mb-8 animate-in delay-200">
+      <a
+        href={podcast.spotify}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex flex-col sm:flex-row items-center gap-4 bg-surface border border-wire rounded-2xl p-2.5 mb-3 hover:bg-overlay transition-colors group"
+      >
+        <img
+          src={podcast.logo}
+          alt={podcast.name}
+          class="sm:size-13 rounded-lg object-cover bg-surface"
+        />
+        <div class="flex flex-col gap-1 flex-1">
+          <span class="text-base font-medium leading-tight text-ink"
+            >{podcast.name}</span
+          >
+          <span class="text-sm text-mute leading-tight"
+            >{podcast.description}</span
+          >
+        </div>
+        <Icon
+          name="lucide:arrow-up-right"
+          width={20}
+          height={20}
+          class="hidden sm:block text-neutral-500 transition-colors group-hover:text-mute shrink-0"
+          aria-hidden="true"
+        />
+      </a>
+      <div class="flex flex-wrap items-center justify-between px-1">
+        <span class="text-sm text-mute font-medium"
+          >Weekly Podcast in Portuguese</span
+        >
+        <a
+          href={podcast.spotify}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1.5 text-sm text-mute hover:text-ink transition-colors font-medium"
+        >
+          Listen on Spotify
+          <Icon name="spotify" width={16} height={16} aria-hidden="true" />
+        </a>
+      </div>
+    </div>
+  </Container>
+
+  <!-- Mobile: horizontal scroll strip -->
+  <div
+    class="sm:hidden overflow-x-auto flex gap-3 px-6 py-6 mb-2 animate-in delay-300"
+    style="scrollbar-width: none; -ms-overflow-style: none;"
+  >
+    {
+      photos.map((photo) => (
+        <div class="bg-white p-1.5 rounded shadow-lg shrink-0">
+          <img
+            src={photo.src}
+            alt={photo.alt}
+            class="w-35 h-44 object-cover block"
+          />
+        </div>
+      ))
+    }
+  </div>
+
+  <!-- Desktop: fan layout -->
+  <div
+    class="hidden sm:flex items-end justify-center py-6 mb-6 overflow-visible animate-in delay-300"
+  >
+    {
+      photos.map((photo, i) => (
+        <div
+          class="relative "
+          style={`transform: rotate(${photo.rotate}); z-index: ${(i + 1) * 10}; ${i > 0 ? "margin-left: -2.5rem;" : ""}`}
+        >
+          <div class="bg-white p-2 rounded shadow-2xl">
+            <img
+              src={photo.src}
+              alt={photo.alt}
+              class="w-50 h-64 object-cover block"
+            />
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <Container>
+    <div class="flex items-center justify-between px-1 animate-in delay-400">
+      <span class="flex items-center gap-1.5 text-xs text-mute font-medium">
+        Some parts of my life :)
+      </span>
+      <a
+        href="https://instagram.com/sammm.dev"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-1.5 text-xs text-mute hover:text-ink transition-colors font-medium"
+      >
+        See more on IG
+        <Icon
+          name="lucide:instagram"
+          width={15}
+          height={15}
+          aria-hidden="true"
+        />
+      </a>
+    </div>
+  </Container>
+</section>

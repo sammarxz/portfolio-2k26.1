@@ -1,0 +1,15 @@
+{
+  "photos": [
+    { "src": "/images/photos/1.jpg", "alt": "Do what you love", "rotate": "-6deg" },
+    { "src": "/images/photos/2.png", "alt": "Me, my wife and my son", "rotate": "-2deg" },
+    { "src": "/images/photos/3.png", "alt": "Churros e Haru", "rotate": "8deg" },
+    { "src": "/images/photos/4.png", "alt": "My setup", "rotate": "4deg" }
+  ],
+  "podcast": {
+    "name": "O Aprendiz",
+    "description": "Where every learning experience becomes an episode",
+    "url": "https://o-aprendiz.simplecast.com/",
+    "logo": "/images/logo-podcast-o-aprendiz.jpg",
+    "spotify": "https://open.spotify.com/show/4uhmQJylhld6zk55F84WaV"
+  }
+}
