@@ -1,0 +1,41 @@
+---
+import Container from '../layout/Container.astro';
+import stack from '../../data/stack.json';
+
+interface TechItem {
+  name: string;
+  logo: string;
+  bg: string;
+}
+---
+
+<section class="py-8 animate-in delay-600">
+  <Container>
+    <div
+      class="relative overflow-hidden"
+      style="mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);"
+    >
+      <div class="flex gap-3 animate-marquee w-max">
+        {[...stack, ...stack].map((tech) => (
+          <div
+            class="group relative flex h-11 w-11 items-center justify-center rounded-full sk-icon-well transition-colors hover:border-edge shrink-0"
+            style={`background-color: ${tech.bg};`}
+            title={tech.name}
+          >
+            <img
+              src={tech.logo}
+              alt={tech.name}
+              width="22"
+              height="22"
+              class="h-[22px] w-[22px] object-contain"
+            />
+            <!-- Tooltip -->
+            <span class="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-overlay px-2 py-1 text-[10px] font-medium text-dim opacity-0 transition-opacity group-hover:opacity-100">
+              {tech.name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Container>
+</section>

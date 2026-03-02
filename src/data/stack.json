@@ -1,0 +1,11 @@
+[
+  { "name": "React",       "logo": "/images/stack/react.svg",       "bg": "#0e1e2e" },
+  { "name": "Next.js",     "logo": "/images/stack/nextjs.svg",      "bg": "#1a1a1a" },
+  { "name": "TypeScript",  "logo": "/images/stack/typescript.svg",  "bg": "#1a2e4a" },
+  { "name": "Tailwind CSS", "logo": "/images/stack/tailwindcss.svg", "bg": "#0b2a35" },
+  { "name": "Elixir",      "logo": "/images/stack/elixir.svg",      "bg": "#1e0e28" },
+  { "name": "Python",      "logo": "/images/stack/python.svg",      "bg": "#1a2e1a" },
+  { "name": "Django",      "logo": "/images/stack/django.svg",      "bg": "#0a1a12" },
+  { "name": "Phoenix",     "logo": "/images/stack/phoenix.svg",     "bg": "#2a1500" },
+  { "name": "FastAPI",     "logo": "/images/stack/fastapi.svg",     "bg": "#001e1b" }
+]
