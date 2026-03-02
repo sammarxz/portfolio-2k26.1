@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StatusBar from '../components/layout/StatusBar.astro';
+import Hero from '../components/sections/Hero.astro';
+import Tools from '../components/sections/Tools.astro';
+import ProjectsGrid from '../components/sections/ProjectsGrid.astro';
+import Experience from '../components/sections/Experience.astro';
+import Ventures from '../components/sections/Ventures.astro';
+import Writing from '../components/sections/Writing.astro';
+import Personal from '../components/sections/Personal.astro';
+import Testimonials from '../components/sections/Testimonials.astro';
+import Contact from '../components/sections/Contact.astro';
+import Footer from '../components/layout/Footer.astro';
+---
+
+<BaseLayout
+  title="Sam Marxz — Software Developer"
+  description="Software developer and maker. I build clean, focused products that solve real problems."
+>
+  <StatusBar />
+  <main class="flex flex-col gap-12">
+    <Hero />
+    <ProjectsGrid />
+    <Experience />
+    <Testimonials />
+    <Tools />
+    <Ventures />
+    <Writing />
+    <Personal />
+    <Contact />
+  </main>
+  <Footer />
+</BaseLayout>
