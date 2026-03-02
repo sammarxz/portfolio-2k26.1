@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Cursor",
+    "logo": "/images/tools/cursor.svg",
+    "url": "https://cursor.com"
+  },
+  {
+    "name": "Ghostty",
+    "logo": "/images/tools/ghostty.svg",
+    "url": "https://ghostty.org"
+  },
+  {
+    "name": "Insomnia",
+    "logo": "/images/tools/insomnia.svg",
+    "url": "https://insomnia.rest"
+  },
+  {
+    "name": "Obsidian",
+    "logo": "/images/tools/obsidian.svg",
+    "url": "https://obsidian.md"
+  },
+  {
+    "name": "Penpot",
+    "logo": "/images/tools/penpot.svg",
+    "url": "https://penpot.app"
+  },
+  {
+    "name": "Zen",
+    "logo": "/images/tools/zen.svg",
+    "url": "https://zen-browser.app"
+  },
+  {
+    "name": "Blanket",
+    "logo": "/images/tools/blanket.svg",
+    "url": "https://flathub.org/pt/apps/com.rafaelmardojai.Blanket"
+  },
+  {
+    "name": "Denaro",
+    "logo": "/images/tools/denaro.svg",
+    "url": "https://flathub.org/pt/apps/org.nickvision.money"
+  },
+  {
+    "name": "Samaya",
+    "logo": "/images/tools/samaya.svg",
+    "url": "https://samaya.suyogtandel.in/"
+  },
+  {
+    "name": "Tarug",
+    "logo": "/images/tools/tarug.svg",
+    "url": "https://flathub.org/pt/apps/io.github.ppvan.tarug"
+  }
+]
