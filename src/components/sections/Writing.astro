@@ -1,0 +1,56 @@
+---
+import { getCollection } from "astro:content";
+import Container from "../layout/Container.astro";
+import HoverList from "../ui/HoverList.astro";
+import SectionLabel from "../ui/SectionLabel.astro";
+import { Icon } from "astro-icon/components";
+
+const allPosts = await getCollection("blog");
+const articles = allPosts
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((post) => ({
+    date: post.data.date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      timeZone: "UTC",
+    }),
+    title: post.data.title,
+    readingTime: post.data.readingTime,
+    slug: `/writing/${post.id.replace(/\.mdx?$/, "")}`,
+  }));
+---
+
+<section class="animate-in delay-800">
+  <Container>
+    <SectionLabel>Writing</SectionLabel>
+    <HoverList class="flex flex-col">
+      {
+        articles.map((article) => (
+          <a
+            href={article.slug}
+            class="group relative z-10 flex items-center gap-4 py-2 transition-colors"
+          >
+            <span class="w-18 shrink-0 text-sm tabular-nums text-mute">
+              {article.date}
+            </span>
+
+            <span class="flex-1 text-dim transition-colors group-hover:text-ink">
+              {article.title}
+            </span>
+
+            <div class="flex shrink-0 items-center gap-1 text-mute">
+              <Icon
+                name="lucide:clock"
+                width={11}
+                height={11}
+                aria-hidden="true"
+              />
+              <span class="text-sm">{article.readingTime} m</span>
+            </div>
+          </a>
+        ))
+      }
+    </HoverList>
+  </Container>
+</section>
