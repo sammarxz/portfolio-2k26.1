@@ -1,0 +1,379 @@
+---
+title: "Behabit: Building a Reward System for Habits"
+description: An MVP PWA born from personal need, built with Next.js, ElysiaJS, Drizzle ORM, and PostgreSQL. A journey beyond the front-end into the world of full-stack systems.
+date: 2026-02-28
+readingTime: 10
+category: engineering
+---
+
+import CodeBlock from "../../components/blog/CodeBlock.astro";
+import ArticleImage from "../../components/blog/ArticleImage.astro";
+
+Every developer has that app they wish existed. Mine was a habit manager that wasn't just another checkbox tracker, something that gave me a **tangible reason** to stay consistent. I wanted to define my own rewards: accumulate points by completing habits and use those points to "buy" something I set as a goal. A new book upon reaching 100 points. An afternoon off after completing 30 consecutive days of training. My rules, my rewards.
+
+I couldn't find anything that did exactly that, so I decided to build it. Behabit was born.
+
+The project became a PWA MVP with the potential to evolve into a mobile app. The interface is dark, clean, and fully focused on the mobile experience, no distractions, with visual feedback (confetti, sounds, animations) that makes completing a habit satisfying.
+
+<ArticleImage
+  src="/images/articles/behabit/1.png"
+  alt="Behabit landing page"
+  caption="Behabit: A minimal habit tracker built around rewards and consistency."
+/>
+
+---
+
+## Why this project matters for my career now
+
+I have solid experience in front-end development. React, TypeScript, responsive interfaces, accessibility, design systems, this is my known territory. But I am currently in a deliberate transition: I want to become a full-stack developer with an emphasis on back-end.
+
+Behabit was a real opportunity to put that to the test. Not just consuming a ready-made API, but **designing and building the entire server layer**: database modeling, authentication, services, routes, and the contracts between front and back. Every technical decision I made here was intentional, and every mistake was a lesson that doesn't exist in any tutorial.
+
+---
+
+## The stack and technical choices
+
+**Frontend:** Next.js 15 (App Router) + React 19 + TailwindCSS v4
+**Backend:** ElysiaJS (Bun runtime)
+**ORM:** Drizzle ORM
+**Database:** PostgreSQL
+**Auth:** Better Auth
+**State:** TanStack Query (React Query)
+**Deploy:** Docker + Docker Compose
+**PWA:** Serwist
+
+### Why ElysiaJS?
+
+This was the choice furthest from my comfort zone. ElysiaJS is a web framework for the Bun runtime, focusing on performance and Developer Experience (DX). What attracted me was the end-to-end type system with Eden, the same validation schema from the server can be consumed on the client with automatic type inference. In smaller projects and MVPs, this eliminates a lot of boilerplate.
+
+The server runs in parallel with Next.js during development:
+
+<CodeBlock
+  lang="json"
+  filename="package.json"
+  code={`"dev": "concurrently --names next,api --prefix-colors blue,green \\"next dev\\" \\"bun --watch server/index.ts\\""`}
+/>
+
+Two processes, one integrated development experience.
+
+---
+
+## Data modeling: where it all begins
+
+The first real back-end decision was the schema. With Drizzle ORM, the schema is pure TypeScript, no separate DSL, no extra configuration files.
+
+<CodeBlock lang="typescript" filename="server/db/schema.ts" code={`export const repeatEnum = pgEnum("repeat", ["daily", "weekly", "monthly"])
+
+export const habits = pgTable("habits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  emoji: text("emoji").notNull().default("⭐"),
+  repeat: repeatEnum("repeat").notNull().default("daily"),
+  selectedDays: jsonb("selected_days")
+    .notNull()
+    .$type<boolean[]>()
+    .default([true, true, true, true, true, true, true]),
+  remindMe: boolean("remind_me").notNull().default(false),
+  reminderTime: text("reminder_time"),
+  xpPerCheck: text("xp_per_check").notNull().default("10"),
+  isPublic: boolean("is_public").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+})
+
+export const habitCompletions = pgTable(
+  "habit_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    habitId: uuid("habit_id")
+      .notNull()
+      .references(() => habits.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // YYYY-MM-DD
+    completed: boolean("completed").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [unique().on(table.habitId, table.date)],
+);
+
+export const rewards = pgTable("rewards", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  emoji: text("emoji").notNull().default("🏆"),
+  xpRequired: integer("xp_required").notNull(),
+  isRedeemed: boolean("is_redeemed").notNull().default(false),
+  redeemedAt: timestamp("redeemed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+})`} />
+
+**What I learned here:**
+
+The decision to store `date` as `text("YYYY-MM-DD")` instead of a `timestamp` was deliberate. Habits live in the context of the user's local day, not UTC. Storing it as a string eliminates all timezone headaches in the database, conversion happens only at the edges of the system. It was a small decision with a big impact.
+
+The `unique().on(table.habitId, table.date)` constraint ensures there are no duplicate completions for the same habit on the same day, business logic guaranteed at the data layer, not just in the application.
+
+---
+
+## The XP and reward logic
+
+Behabit's core mechanics live in pure functions shared between front and back, TypeScript bridging both worlds:
+
+<CodeBlock lang="typescript" filename="lib/shared/types.ts" code={`export function calculateTotalXP(habits: Habit[]): number {
+  return habits.reduce((total, h) => {
+    const checkIns = Object.values(h.activities).filter(Boolean).length
+    return total + checkIns * (h.xpPerCheck || 0)
+  }, 0)
+}
+
+export function calculateSpentXP(rewards: Reward[]): number {
+  return rewards.filter((r) => r.isRedeemed).reduce((total, r) => total + r.xpRequired, 0)
+}
+
+export const calculateStreak = (activities: Record<string, boolean> | undefined): number => {
+  if (!activities) return 0
+  let streak = 0
+  const today = new Date()
+  for (let i = 0; i < 365; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - i)
+    const dateString = date.toISOString().split("T")[0]
+    if (activities[dateString]) {
+      streak++
+    } else {
+      break
+    }
+  }
+  return streak
+}`} />
+
+Available XP is always `totalXP - spentXP`. Simple, auditable, with no magic state in the database. When the user redeems a reward, the `isRedeemed` field is set to true and the spent XP is recalculated, the source of truth is always the completion history.
+
+---
+
+## Services: separating responsibilities
+
+One of the biggest lessons was organizing the service layer cleanly. Each entity has its own service file with pure functions that receive `userId` as the first argument, ensuring that no operation happens without the context of the authenticated user.
+
+<CodeBlock lang="typescript" filename="server/services/habit.service.ts" code={`export async function toggleHabitCompletion(userId: string, habitId: string, date: string) {
+  // 1. Verify that the habit belongs to the user
+  const [habit] = await db
+    .select()
+    .from(habits)
+    .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
+
+if (!habit) return null
+
+// 2. Check if a completion already exists for this date
+const [existing] = await db
+.select()
+.from(habitCompletions)
+.where(and(eq(habitCompletions.habitId, habitId), eq(habitCompletions.date, date)))
+
+if (existing) {
+if (existing.completed) {
+// Toggle off: delete
+await db.delete(habitCompletions).where(eq(habitCompletions.id, existing.id))
+return { date, completed: false }
+} else {
+// Toggle on
+await db.update(habitCompletions).set({ completed: true }).where(eq(habitCompletions.id, existing.id))
+return { date, completed: true }
+}
+} else {
+// Create new completion
+await db.insert(habitCompletions).values({ habitId, date, completed: true })
+return { date, completed: true }
+}
+}`} />
+
+The same pattern applies to reward redemption, ownership verification before any mutation, returning `null` when not found, and the controller (route) deciding the HTTP status:
+
+<CodeBlock lang="typescript" filename="server/services/reward.service.ts" code={`export async function redeemReward(userId: string, rewardId: string) {
+  const [existing] = await db
+    .select()
+    .from(rewards)
+    .where(and(eq(rewards.id, rewardId), eq(rewards.userId, userId)))
+
+if (!existing) return null
+if (existing.isRedeemed) return null
+
+const [updated] = await db
+.update(rewards)
+.set({
+isRedeemed: true,
+redeemedAt: new Date(),
+updatedAt: new Date(),
+})
+.where(eq(rewards.id, rewardId))
+.returning()
+
+return rewardToResponse(updated)
+}`} />
+
+---
+
+## Routes with ElysiaJS: validation as a contract
+
+ElysiaJS has an integrated validation system with TypeBox that impressed me. Body validation is not a separate middleware, it's part of the route definition and generates TypeScript types automatically:
+
+<CodeBlock
+  lang="typescript"
+  filename="server/routes/habit.routes.ts"
+  code={`export const habitRoutes = new Elysia({ prefix: "/api/habits" })
+  .use(authMiddleware)
+  .onBeforeHandle(({ user, set }) => {
+    if (!user) {
+      set.status = 401
+      return { error: "Unauthorized" }
+    }
+  })
+  .post(
+    "/:id/toggle",
+    async ({ user, params, body, set }) => {
+      const result = await toggleHabitCompletion(user!.id, params.id, body.date)
+      if (!result) {
+        set.status = 404
+        return { error: "Habit not found" }
+      }
+      return result
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      body: t.Object({
+        date: t.String({ pattern: "^\\\\d{4}-\\\\d{2}-\\\\d{2}$" }),
+      }),
+    }
+  )`}
+/>
+
+The regex in the `date` field ensures the `YYYY-MM-DD` format even before reaching the service. This is validation at the edge, where it should be.
+
+---
+
+## Authentication with Better Auth
+
+I chose Better Auth instead of implementing JWT manually because I wanted to focus on product features, not auth infrastructure. Its integration with Drizzle was straightforward, and support for OAuth (GitHub and Google) came at no extra cost:
+
+<CodeBlock
+  lang="typescript"
+  filename="server/auth.ts"
+  code={`export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: { user, session, account, verification },
+  }),
+  emailAndPassword: { enabled: true },
+  socialProviders: {
+    github: {
+      clientId: env.GITHUB_CLIENT_ID ?? "",
+      clientSecret: env.GITHUB_CLIENT_SECRET ?? "",
+    },
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: env.GOOGLE_CLIENT_SECRET ?? "",
+    },
+  },
+  user: {
+    additionalFields: {
+      username: { type: "string", required: false, unique: true },
+    },
+  },
+})`}
+/>
+
+The `username` field was an important addition: it allows for public profiles where other users can see habits marked as `isPublic: true`.
+
+---
+
+## The side I already knew: the mobile experience
+
+With the back-end structured, the front-end felt more natural. However, there were still relevant lessons. The `useDashboard` hook was where all the dashboard state logic consolidated, including a non-obvious solution to the timezone problem:
+
+<CodeBlock lang="typescript" filename="hooks/use-dashboard.ts" code={`const visibleHabits = useMemo(() => {
+  // Using T12:00:00 prevents timezone conversion from changing the day
+  const date = new Date(selectedDate + "T12:00:00")
+  // JS getDay(): Sun=0…Sat=6 → app selectedDays: Mon=0…Sun=6
+  const dayIndex = (date.getDay() + 6) % 7
+
+return habits.filter((habit) => {
+if (!habit.createdAt) return true
+const createdDateStr = new Date(habit.createdAt).toISOString().split("T")[0]
+if (createdDateStr > selectedDate) return false
+return habit.selectedDays[dayIndex] === true
+})
+}, [habits, selectedDate])`} />
+
+The problem: `new Date("2024-01-15")` is interpreted as UTC midnight, and depending on the user's timezone, it could result in the previous day. Fixing the time at `T12:00:00` ensures the date remains correct regardless of the timezone. This type of bug only appears in production, with real users in different timezones.
+
+<ArticleImage
+  src="/images/articles/behabit/2.png"
+  alt="Behabit mobile screens"
+  caption="The mobile-first interface focus: dashboard and rewards."
+/>
+
+---
+
+## PWA and habit notifications
+
+Transforming the application into a PWA with Serwist added capabilities that were essential to the product's value proposition: mobile installability and habit reminder notifications.
+
+The PWA-first architecture was a conscious choice: the cost of developing a native app (React Native, Expo) is significantly higher for an MVP. PWAs deliver ~80% of the mobile experience with the same codebase.
+
+---
+
+## Deploy: Docker Compose to separate front and back
+
+The separation between Next.js and ElysiaJS required a `docker-compose.yml` with two distinct services. This was a practical lesson in Docker networks, production environment variables, and the build cycle of a monorepo:
+
+<CodeBlock lang="yaml" filename="docker-compose.yml" code={`services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports: ["3000:3000"]
+    depends_on: [api, db]
+
+api:
+build:
+context: .
+dockerfile: Dockerfile.api
+ports: ["3001:3001"]
+depends_on: [db]
+
+db:
+image: postgres:16-alpine
+volumes: [postgres_data:/var/lib/postgresql/data]`} />
+
+---
+
+## What's left for future versions
+
+Behabit is functional as an MVP, but there are clear items on the roadmap:
+
+- **Offline mode with sync**: service worker to cache data and synchronize when the connection returns.
+- **Native mobile app**: migrate to React Native while keeping the shared business logic.
+- **Advanced statistics**: consistency charts by period, activity heatmap.
+- **Social habits**: follow friends, view public progress, group challenges.
+
+---
+
+## Final reflection
+
+Behabit taught me that the biggest difference between front-end and full-stack isn't technology, it's mindset. In the front-end, you consume a contract. In the back-end, you are responsible for it. Every schema field, every route validation, every ownership check before a mutation, these are decisions that impact security, data consistency, and user experience in ways the front-end never sees.
+
+Stepping out of the comfort zone of beautiful interfaces to design a system that works correctly, doesn't leak one user's data to another, handles errors gracefully, and maintains consistency under concurrency, this changed my perspective as a developer.
+
+I am building other projects with this same mindset: start from a real need, design the back-end architecture first, and let the user experience emerge from a solid foundation.
+
+---
+
+_This project is part of my portfolio under construction. The code is available on GitHub._
+
+**Stack summary:** Next.js 15 · React 19 · ElysiaJS · Bun · Drizzle ORM · PostgreSQL · Better Auth · TanStack Query · TailwindCSS v4 · Docker · PWA (Serwist)

@@ -1,0 +1,32 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
+const { src, alt, caption } = Astro.props;
+---
+
+<figure class="article-img not-prose my-10">
+  <div class="overflow-hidden rounded-lg border border-rim shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
+    <img src={src} alt={alt} class="block w-full" loading="lazy" decoding="async" />
+  </div>
+  {
+    caption && (
+      <figcaption class="mt-3 text-center font-mono text-xs text-mute">
+        {caption}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .article-img {
+    /* Break out beyond the 580px content column, capped so it never overflows the viewport */
+    width: min(900px, calc(100vw - 48px));
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+</style>

@@ -1,0 +1,83 @@
+---
+title: "Optical Alignment"
+description: Why perfectly centered doesn't always look centered - and what to do about it
+date: 2025-10-19
+readingTime: 2
+category: design
+---
+
+import OpticalComparison from "../../components/blog/OpticalComparison.tsx";
+import OpticalButtonDemo from "../../components/blog/OpticalButtonDemo.tsx";
+
+Ever designed something that was mathematically perfect but somehow looked... off?
+
+You measured everything. Used guides. Centered your icon pixel-perfect. And yet, it still looks misaligned.
+
+Welcome to optical alignment - where your eyes and math disagree.
+
+---
+
+## The problem
+
+Look at this play button. It's centered perfectly. The math checks out. But does it *look* centered?
+
+<OpticalComparison client:load />
+
+Probably not. That's because shapes have visual weight that our eyes perceive differently than their mathematical bounds.
+
+Triangles, especially, are tricky. Most of their mass sits on one side. When you center them mathematically, they appear to lean backward.
+
+---
+
+## The solution
+
+The fix? Adjust by eye. Move things slightly until they *feel* balanced, not until they measure balanced.
+
+In the example above, try switching to "Optical" mode. Notice how the icon shifts 3px to the right? That small adjustment makes all the difference.
+
+The mathematical center uses pixel measurements. The optical center uses human perception.
+
+Design is for humans, not calculators.
+
+---
+
+## Real world example
+
+Here's where it matters most - in your actual UI. Compare these two buttons:
+
+<OpticalButtonDemo client:load />
+
+Same button. Same icon. Just a 4px difference in padding (24px left vs 20px right). But one feels polished, the other feels sloppy.
+
+This applies everywhere:
+- Play buttons in video players
+- Icons in navigation menus
+- Logos in headers
+- Anything with asymmetric shapes
+
+---
+
+## When to use it
+
+Not everything needs optical alignment. Use it when:
+- You have directional shapes (triangles, arrows, irregular icons)
+- Something looks wrong despite being mathematically correct
+- You're working with icons paired with text
+- Visual balance matters more than pixel perfection
+
+Skip it when:
+- You're working with uniform shapes (squares, even circles)
+- Alignment is to a grid rather than visual center
+- You're prototyping quickly and polish can wait
+
+---
+
+## The takeaway
+
+Trust your eyes. Math is a starting point, not the finish line.
+
+If something looks off, it probably is - regardless of what your measurement tools say.
+
+Optical alignment isn't about being lazy with measurements. It's about understanding that good design serves perception, not precision.
+
+Adjust. Iterate. When it looks right, it is right.

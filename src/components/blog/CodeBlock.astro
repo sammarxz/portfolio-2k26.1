@@ -1,0 +1,188 @@
+---
+import { Code } from "astro:components";
+
+interface Props {
+  filename?: string;
+  lang?: string;
+  code: string;
+}
+
+const { filename, lang = "text", code } = Astro.props;
+
+const langNames: Record<string, string> = {
+  elixir: "Elixir",
+  javascript: "JavaScript",
+  js: "JavaScript",
+  typescript: "TypeScript",
+  ts: "TypeScript",
+  sql: "SQL",
+  bash: "Bash",
+  shell: "Shell",
+  text: "Text",
+};
+
+const displayName = filename ?? langNames[lang] ?? lang;
+---
+
+<div class="code-block not-prose my-8 overflow-hidden rounded-lg border border-rim">
+  <div class="flex items-center gap-3 border-b border-wire bg-surface px-4 py-2.5">
+    <!-- Traffic lights -->
+    <div class="flex gap-1.5">
+      <div class="h-3 w-3 rounded-full bg-overlay"></div>
+      <div class="h-3 w-3 rounded-full bg-overlay"></div>
+      <div class="h-3 w-3 rounded-full bg-overlay"></div>
+    </div>
+
+    <!-- Filename / language label -->
+    <span class="flex-1 text-center font-mono text-xs text-mute">
+      {displayName}
+    </span>
+
+    <!-- Copy button -->
+    <button class="code-copy-btn" aria-label="Copy code" type="button">
+      <!-- Default: copy icon -->
+      <svg
+        class="code-copy-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="9" y="2" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+        ></path>
+      </svg>
+
+      <!-- Copied state: check icon -->
+      <svg
+        class="code-check-icon"
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+
+      <span class="code-copy-label">Copy</span>
+    </button>
+  </div>
+
+  <div class="code-block-body overflow-x-auto">
+    <Code code={code.trim()} lang={lang} theme="vesper" />
+  </div>
+</div>
+
+<style>
+  /* ── Copy button ─────────────────────────────────────────── */
+  .code-copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border: 1px solid var(--color-rim);
+    border-radius: 4px;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--color-mute);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .code-copy-btn:hover {
+    border-color: var(--color-edge);
+    color: var(--color-dim);
+  }
+
+  /* Copied state — driven by [data-copied] attribute */
+  .code-check-icon {
+    display: none;
+  }
+
+  .code-copy-btn[data-copied] .code-copy-icon {
+    display: none;
+  }
+
+  .code-copy-btn[data-copied] .code-check-icon {
+    display: block;
+    color: var(--color-accent);
+  }
+
+  .code-copy-btn[data-copied] {
+    border-color: rgba(34, 197, 94, 0.3);
+    color: var(--color-accent);
+  }
+
+  /* ── Code area ───────────────────────────────────────────── */
+  .code-block-body :global(pre) {
+    margin: 0;
+    border-radius: 0;
+    padding: 1.25rem 1.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.75;
+  }
+
+  .code-block-body :global(code) {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    box-shadow: none;
+  }
+</style>
+
+<script>
+  function initCodeCopyButtons() {
+    document
+      .querySelectorAll<HTMLButtonElement>(".code-copy-btn:not([data-init])")
+      .forEach((btn) => {
+        btn.dataset.init = "true";
+
+        btn.addEventListener("click", async () => {
+          const block = btn.closest<HTMLElement>(".code-block");
+          const text = block?.querySelector("pre code")?.textContent ?? "";
+
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            // Fallback for environments without clipboard API
+            const tmp = document.createElement("textarea");
+            tmp.value = text;
+            document.body.appendChild(tmp);
+            tmp.select();
+            document.execCommand("copy");
+            document.body.removeChild(tmp);
+          }
+
+          const label = btn.querySelector<HTMLElement>(".code-copy-label");
+          btn.dataset.copied = "";
+          if (label) label.textContent = "Copied";
+
+          setTimeout(() => {
+            delete btn.dataset.copied;
+            if (label) label.textContent = "Copy";
+          }, 2000);
+        });
+      });
+  }
+
+  initCodeCopyButtons();
+  document.addEventListener("astro:page-load", initCodeCopyButtons);
+</script>
