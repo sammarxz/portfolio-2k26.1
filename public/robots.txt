@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sammarxz.com/sitemap-index.xml
