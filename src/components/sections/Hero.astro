@@ -1,0 +1,123 @@
+---
+import Container from "../layout/Container.astro";
+import Button from "../ui/Button.astro";
+---
+
+<header class="">
+  <Container>
+    <!-- Avatar -->
+    <div class="mb-5 animate-in delay-100">
+      <div class="relative inline-block group">
+        <img
+          src="/images/profile.png"
+          alt="Sam Marxz profile photo"
+          width="56"
+          height="56"
+          class="h-14 w-14 rounded-xl object-cover"
+        />
+        <!-- Green dot -> Badge hover -->
+        <div class="absolute -bottom-1.5 left-[calc(100%-12px)] z-10">
+          <div class="flex items-center bg-canvas rounded-full p-[3px]">
+            <div class="h-3 w-3 bg-emerald-500 rounded-full" aria-hidden="true">
+            </div>
+            <div
+              class="w-0 group-hover:w-[148px] overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            >
+              <span
+                class="text-xs font-semibold text-ink whitespace-nowrap pl-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 uppercase tracking-wide block"
+              >
+                Available for work
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Name & Role -->
+    <div class="mb-5 animate-in delay-150">
+      <h1
+        class="text-lg font-medium leading-tight text-ink flex items-center gap-1.5 mb-1"
+      >
+        Sam Marxz
+        <img
+          src="/images/badge.svg"
+          alt=""
+          aria-hidden="true"
+          width="18"
+          height="18"
+        />
+      </h1>
+      <p class="text-dim">Full-stack Engineer</p>
+    </div>
+
+    <!-- Bio -->
+    <p class="mb-6 leading-relaxed text-dim animate-in delay-200">
+      I'm Sam, a Frontend Engineer expanding into full-stack. Years shipping
+      pixel-perfect interfaces taught me that great products aren't built in
+      layers — they're built whole. Now I'm closing the gap: from the component
+      to the API, from the design system to the database.
+    </p>
+
+    <!-- CTAs -->
+    <div class="flex items-center animate-in delay-300">
+      <!-- Desktop: Copy Email -->
+      <button
+        id="copy-email-btn"
+        class="hidden sm:flex items-center gap-2 text-dim hover:text-ink transition-colors group cursor-pointer"
+        data-email="sammarxz@proton.me"
+      >
+        Press
+        <span
+          class="flex h-5 w-5 items-center justify-center rounded bg-surface border border-rim text-xs font-mono text-ink shadow-(--shadow-card-inset) group-hover:bg-lift transition-colors"
+        >
+          C
+        </span>
+        to copy my email
+      </button>
+
+      <!-- Mobile: Get in touch -->
+      <Button
+        variant="secondary"
+        href="mailto:sammarxz@proton.me"
+        class="w-full sm:hidden items-center justify-center"
+      >
+        Get in touch
+      </Button>
+    </div>
+  </Container>
+</header>
+
+<script>
+  const email = "sammarxz@proton.me";
+
+  function copyEmail() {
+    navigator.clipboard.writeText(email);
+    const btn = document.getElementById("copy-email-btn");
+    if (btn) {
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = "Copied!";
+      btn.classList.add("text-accent");
+      setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove("text-accent");
+      }, 2000);
+    }
+  }
+
+  document
+    .getElementById("copy-email-btn")
+    ?.addEventListener("click", copyEmail);
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key.toLowerCase() === "c" &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName || "")
+    ) {
+      copyEmail();
+    }
+  });
+</script>
