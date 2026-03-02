@@ -1,0 +1,69 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Container from '../layout/Container.astro';
+import SectionLabel from '../ui/SectionLabel.astro';
+
+const worksDir = path.join(process.cwd(), 'public/images/works');
+
+const images: string[] = fs.existsSync(worksDir)
+  ? fs
+      .readdirSync(worksDir)
+      .filter((f) => /\.(png|jpe?g|webp|avif|gif|svg)$/i.test(f))
+      .sort((a, b) => {
+        const na = parseInt(a, 10);
+        const nb = parseInt(b, 10);
+        return isNaN(na) || isNaN(nb) ? a.localeCompare(b) : na - nb;
+      })
+      .map((f) => `/images/works/${f}`)
+  : [];
+---
+
+{images.length > 0 && (
+  <section class="animate-in delay-500">
+    <Container>
+      <SectionLabel>Selected Works</SectionLabel>
+      <p class="text-dim">Here are some of my favorite projects I've worked on.</p>
+    </Container>
+
+    <div id="works-container" class="mt-6 mx-6 sm:mx-auto sm:w-[calc(100%+4rem)] md:w-[calc(100%+8rem)] lg:w-[calc(100%+12rem)] max-w-[800px]">
+      <div class="bg-black border border-white/4 shadow-(--shadow-card-full) overflow-hidden rounded-2xl w-full mx-auto">
+        <div class="relative w-full aspect-16/10 bg-surface">
+          <img
+            id="works-img"
+            src={images[0]}
+            alt="Work preview"
+            class="absolute inset-0 h-full w-full object-cover"
+            style="display:block;"
+          />
+        </div>
+      </div>
+    </div>
+
+    <script define:vars={{ images }}>
+      const img = document.getElementById('works-img');
+      const container = document.getElementById('works-container');
+      
+      if (img && images.length > 1) {
+        let index = 0;
+        let interval;
+
+        const start = () => {
+          interval = setInterval(() => {
+            index = (index + 1) % images.length;
+            img.src = images[index];
+          }, 500);
+        };
+
+        const stop = () => clearInterval(interval);
+
+        start();
+
+        if (container) {
+          container.addEventListener('mouseenter', stop);
+          container.addEventListener('mouseleave', start);
+        }
+      }
+    </script>
+  </section>
+)}
