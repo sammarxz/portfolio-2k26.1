@@ -1,0 +1,90 @@
+---
+import Container from "./Container.astro";
+import Signature from "../ui/Signature.tsx";
+import { Icon } from "astro-icon/components";
+---
+
+<footer class="animate-in delay-900">
+  <Container>
+    <div class="flex flex-col items-center pt-12 pb-8 gap-8">
+      <div>
+        <Signature client:only="react" />
+      </div>
+
+      <div class="flex flex-col items-center gap-4">
+        <div class="flex items-center gap-3 text-sm text-neutral-500">
+          <a
+            href="mailto:sammarxz@proton.me"
+            class="transition-colors hover:text-mute"
+          >
+            sammarxz@proton.me
+          </a>
+          <span>&middot;</span>
+          <a
+            href="https://github.com/sammarxz"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="transition-colors hover:text-mute"
+          >
+            GitHub
+          </a>
+          <span>&middot;</span>
+          <a
+            href="https://x.com/sammarxz"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="transition-colors hover:text-mute"
+          >
+            X.com
+          </a>
+          <span>&middot;</span>
+          <a
+            href="https://linkedin.com/in/sammarxz"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="transition-colors hover:text-mute"
+          >
+            LinkedIn
+          </a>
+        </div>
+
+        <p class="text-sm text-neutral-500">
+          &copy; {new Date().getFullYear()} Sam Marxz
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between py-4">
+      <div class="flex items-center gap-1.5">
+        <Icon
+          name="lucide:map-pin"
+          width={11}
+          height={11}
+          class="text-neutral-500"
+          aria-hidden="true"
+        />
+        <span
+          class="text-xs font-medium uppercase tracking-wide text-neutral-500"
+          >Brazil, GMT-3</span
+        >
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <Icon
+          name="simple-icons:astro"
+          width={11}
+          height={11}
+          class="text-neutral-500"
+          aria-hidden="true"
+        />
+        <a
+          href="https://astro.build"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-xs font-medium uppercase tracking-wide text-neutral-500 hover:text-neutral-300 transition-colors"
+          >Built with Astro</a
+        >
+      </div>
+    </div>
+  </Container>
+</footer>
