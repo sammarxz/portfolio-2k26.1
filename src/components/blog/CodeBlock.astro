@@ -81,6 +81,7 @@ const displayName = filename ?? langNames[lang] ?? lang;
   </div>
 
   <div class="code-block-body overflow-x-auto">
+    {/* @ts-expect-error - lang string is valid but TypeScript types are restrictive */}
     <Code code={code.trim()} lang={lang} theme="vesper" />
   </div>
 </div>
