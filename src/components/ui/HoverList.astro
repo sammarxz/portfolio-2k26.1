@@ -1,0 +1,44 @@
+---
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<hover-list class={`relative block ${className ?? ''}`}>
+  <!-- Sliding highlight block -->
+  <div
+    class="hover-bg absolute bg-surface opacity-0 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-0 pointer-events-none left-1/2 w-[100vw] -translate-x-1/2 rounded-none"
+    style="top: 0px; height: 0px;"
+  ></div>
+  <slot />
+</hover-list>
+
+<script>
+  class HoverList extends HTMLElement {
+    connectedCallback() {
+      const bg = this.querySelector('.hover-bg') as HTMLElement;
+      // Select immediate children that are anchors as hover targets
+      const items = Array.from(this.querySelectorAll('a')) as HTMLElement[];
+
+      if (!bg || items.length === 0) return;
+
+      let isHovered = false;
+
+      items.forEach((item) => {
+        item.addEventListener('mouseenter', () => {
+          isHovered = true;
+          bg.style.opacity = '1';
+          bg.style.top = `${item.offsetTop}px`;
+          bg.style.height = `${item.offsetHeight}px`;
+        });
+      });
+
+      this.addEventListener('mouseleave', () => {
+        isHovered = false;
+        bg.style.opacity = '0';
+      });
+    }
+  }
+  customElements.define('hover-list', HoverList);
+</script>

@@ -1,0 +1,48 @@
+---
+import Container from "./Container.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<div class="pt-6 pb-12 md:py-12 animate-in">
+  <Container>
+    <div class="flex items-center justify-between">
+      <span
+        class="font-mono text-xs font-medium uppercase tracking-wider text-mute"
+        >EST. 1996</span
+      >
+
+      <div class="flex items-center gap-1.5">
+        <Icon
+          name="lucide:clock"
+          width={12}
+          height={12}
+          class="text-mute"
+          aria-hidden="true"
+        />
+        <time
+          id="status-time"
+          class="font-mono text-xs font-medium uppercase tracking-wider text-mute"
+        ></time>
+      </div>
+    </div>
+  </Container>
+</div>
+
+<script>
+  function updateClock() {
+    const el = document.getElementById("status-time");
+    if (!el) return;
+    const now = new Date();
+    const formatted = now.toLocaleTimeString("en-US", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    el.textContent = `${formatted} GMT-3`;
+    (el as HTMLTimeElement).dateTime = now.toISOString();
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>

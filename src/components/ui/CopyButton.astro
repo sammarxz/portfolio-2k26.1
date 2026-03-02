@@ -1,0 +1,79 @@
+---
+interface Props {
+  text: string;
+  label?: string;
+}
+
+const { text, label } = Astro.props;
+const displayLabel = label ?? text;
+---
+
+<button
+  type="button"
+  class="copy-btn btn-surface min-w-[168px] px-4 py-2.5 justify-between gap-2"
+  data-copy-text={text}
+  aria-label={`Copy ${displayLabel} to clipboard`}
+>
+  <span class="copy-label">{displayLabel}</span>
+
+  <!-- Clipboard icon (default) -->
+  <svg
+    class="copy-icon-default h-4 w-4 shrink-0 text-mute"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <rect x="9" y="2" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+
+  <!-- Check icon (copied state) -->
+  <svg
+    class="copy-icon-check hidden h-4 w-4 shrink-0 text-accent"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+</button>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const textToCopy = btn.dataset.copyText ?? '';
+      const label = btn.querySelector<HTMLElement>('.copy-label');
+      const iconDefault = btn.querySelector<SVGElement>('.copy-icon-default');
+      const iconCheck = btn.querySelector<SVGElement>('.copy-icon-check');
+
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+
+        if (label) label.textContent = 'Copied!';
+        iconDefault?.classList.add('hidden');
+        iconCheck?.classList.remove('hidden');
+
+        setTimeout(() => {
+          if (label) label.textContent = textToCopy;
+          iconDefault?.classList.remove('hidden');
+          iconCheck?.classList.add('hidden');
+        }, 2000);
+      } catch {
+        const tmp = document.createElement('textarea');
+        tmp.value = textToCopy;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+      }
+    });
+  });
+</script>
