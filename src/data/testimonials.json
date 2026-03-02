@@ -1,0 +1,17 @@
+[
+  {
+    "quote": "Sam led the migration of our entire codebase from Class Components to React Hooks and shipped a Design System that brought consistency across the whole product. Reliable delivery, every sprint.",
+    "name": "Zenvia",
+    "logo": "zenvia.svg"
+  },
+  {
+    "quote": "Sam rebuilt our design system from scratch and drove the migration to Next.js 14 — all while keeping the existing PHP platform running. Clear vision, strong execution.",
+    "name": "Scriptcase",
+    "logo": "scriptcase.svg"
+  },
+  {
+    "quote": "Sam hit every sprint on the CloudX project, delivering complex React + GraphQL interfaces for a platform used by thousands of J&J employees worldwide.",
+    "name": "TCS",
+    "logo": "tcs.svg"
+  }
+]

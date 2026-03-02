@@ -1,0 +1,64 @@
+---
+import Container from "../layout/Container.astro";
+import SectionLabel from "../ui/SectionLabel.astro";
+import testimonials from "../../data/testimonials.json";
+---
+
+<section class="animate-in delay-800">
+  <Container>
+    <SectionLabel>Testimonials</SectionLabel>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:h-[260px]">
+      {
+        testimonials.map((t, i) => (
+          <div
+            class="t-card bg-background border border-wire rounded-2xl overflow-hidden"
+            data-idx={i}
+            style={`flex-grow: ${i === 0 ? 3 : 1}; flex-basis: 0; opacity: ${i === 0 ? 1 : 0.45}; transition: flex-grow 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s cubic-bezier(0.4,0,0.2,1); cursor: ${i === 0 ? "default" : "pointer"};`}
+          >
+            <div class="p-5 h-full flex flex-col justify-between w-full sm:w-[355px]">
+              <p class="leading-relaxed text-dim overflow-hidden flex-1">
+                &ldquo;{t.quote}&rdquo;
+              </p>
+
+              <div class="flex items-center gap-3 mt-4">
+                <div class="relative">
+                  <img src={`/images/companies/${t.logo}`} alt={t.name} />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </Container>
+</section>
+
+<style>
+  @media (max-width: 639px) {
+    .t-card {
+      flex-grow: 1 !important;
+      flex-basis: auto !important;
+      opacity: 1 !important;
+      cursor: default !important;
+    }
+  }
+</style>
+
+<script>
+  if (window.matchMedia("(min-width: 640px)").matches) {
+    const cards = document.querySelectorAll<HTMLElement>(".t-card");
+
+    cards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const idx = card.dataset.idx;
+        cards.forEach((c) => {
+          const isActive = c.dataset.idx === idx;
+          c.style.flexGrow = isActive ? "3" : "1";
+          c.style.opacity = isActive ? "1" : "0.45";
+          c.style.cursor = isActive ? "default" : "pointer";
+        });
+      });
+    });
+  }
+</script>
