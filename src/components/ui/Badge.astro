@@ -1,0 +1,23 @@
+---
+interface Props {
+  text: string;
+  color?: 'green' | 'yellow' | 'red';
+}
+
+const { text, color = 'green' } = Astro.props;
+---
+
+<span class="inline-flex items-center gap-1.5 rounded-full border border-rim px-3 py-1">
+  {color === 'green' && (
+    <span class="size-1.5 rounded-full bg-green-500"></span>
+  )}
+  {color === 'yellow' && (
+    <span class="size-1.5 rounded-full bg-yellow-500"></span>
+  )}
+  {color === 'red' && (
+    <span class="size-1.5 rounded-full bg-red-500"></span>
+  )}
+  <span class="text-xs font-semibold uppercase tracking-widest text-dim">
+    {text}
+  </span>
+</span>

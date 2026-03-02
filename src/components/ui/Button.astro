@@ -1,0 +1,32 @@
+---
+interface Props {
+  variant?: "primary" | "secondary";
+  href?: string;
+  type?: "button" | "submit" | "reset";
+  class?: string;
+}
+
+const { variant = "primary", href, type = "button", class: className } = Astro.props;
+
+const base =
+  "inline-flex items-center rounded-full px-5 py-2.5 font-medium cursor-pointer";
+
+const variants = {
+  primary: `${base} text-sm transition-opacity bg-ink text-canvas shadow-(--shadow-btn-inset) hover:opacity-90 active:shadow-(--shadow-btn-active)`,
+  secondary: `${base} text-base justify-center transition-colors bg-lift border border-wire text-ink shadow-(--shadow-btn-inset) hover:bg-rim active:shadow-(--shadow-btn-active)`,
+};
+
+const classes = [variants[variant], className].filter(Boolean).join(" ");
+---
+
+{
+  href ? (
+    <a href={href} class={classes}>
+      <slot />
+    </a>
+  ) : (
+    <button type={type} class={classes}>
+      <slot />
+    </button>
+  )
+}
