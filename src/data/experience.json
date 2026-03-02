@@ -1,0 +1,26 @@
+[
+  {
+    "period": "2024 — 2025",
+    "role": "Front-End Developer at",
+    "company": "Scriptcase",
+    "description": "Led the tech stack modernization with Headless CMS + Next.js 14, built a complete Design System from scratch, and redesigned strategic pages focusing on conversion and UX."
+  },
+  {
+    "period": "2023",
+    "role": "Front-End Developer at",
+    "company": "TCS",
+    "description": "Developed CloudX, an enterprise cloud governance platform (AWS, GCP, Azure) used by thousands of J&J employees worldwide, built with React, Redux, Material-UI, and GraphQL."
+  },
+  {
+    "period": "2022",
+    "role": "Front-End Developer at",
+    "company": "Zenvia",
+    "description": "Led a large-scale migration from legacy Class Components to modern React Hooks, and created a new Design System ensuring consistency across the entire application."
+  },
+  {
+    "period": "2017 — 2019",
+    "role": "Full-Stack Developer at",
+    "company": "Buzz Lab",
+    "description": "Delivered institutional websites and landing pages end-to-end (design to deploy). Built web systems with Python (Flask/Django) and introduced React and Angular for advanced UI management."
+  }
+]

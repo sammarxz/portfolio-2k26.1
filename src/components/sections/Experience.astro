@@ -1,0 +1,67 @@
+---
+import Container from "../layout/Container.astro";
+import Button from "../ui/Button.astro";
+import SectionLabel from "../ui/SectionLabel.astro";
+import { Icon } from "astro-icon/components";
+import experiences from "../../data/experience.json";
+
+interface ExperienceItem {
+  period: string;
+  role: string;
+  company: string;
+  description: string;
+}
+---
+
+<section class="animate-in delay-650">
+  <Container>
+    <SectionLabel>Experience</SectionLabel>
+    <p class="mb-6 leading-relaxed text-dim">
+      6+ years building digital products at the intersection of design and
+      engineering. Here's a brief overview.
+    </p>
+
+    <div class="flex flex-col mb-6">
+      {
+        experiences.map((exp) => (
+          <div class="flex flex-col gap-1 py-4 sm:grid sm:grid-cols-[120px_1fr] sm:gap-4">
+            <span class="font-mono text-xs uppercase tracking-wider text-mute leading-tight sm:pt-1">
+              {exp.period}
+            </span>
+            <div>
+              <p class="mb-1.5 text-base text-ink flex items-center gap-1.5 flex-wrap">
+                {exp.role}
+                {exp.company}
+              </p>
+              <p class="text-base leading-relaxed text-dim">
+                {exp.description}
+              </p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="flex items-center flex-wrap gap-4">
+      <Button
+        href="/SamMarxz_Resume_2k26.pdf"
+        variant="secondary"
+        class="w-full sm:w-auto items-center justify-center"
+      >
+        <Icon
+          name="lucide:download"
+          width={14}
+          height={14}
+          class="mr-2"
+          aria-hidden="true"
+        />
+        Download full resume
+      </Button>
+      <p
+        class="text-sm text-mute italic text-center w-full sm:w-auto sm:text-left"
+      >
+        SamMarxz_Resume_2k26.pdf (53,8 kb)
+      </p>
+    </div>
+  </Container>
+</section>
