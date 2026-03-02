@@ -27,6 +27,7 @@ const { photos, podcast } = personal;
           src={podcast.logo}
           alt={podcast.name}
           class="sm:size-13 rounded-lg object-cover bg-surface"
+          loading="lazy"
         />
         <div class="flex flex-col gap-1 flex-1">
           <span class="text-base font-medium leading-tight text-ink"
@@ -73,6 +74,7 @@ const { photos, podcast } = personal;
             src={photo.src}
             alt={photo.alt}
             class="w-35 h-44 object-cover block"
+            loading="lazy"
           />
         </div>
       ))
@@ -94,6 +96,7 @@ const { photos, podcast } = personal;
               src={photo.src}
               alt={photo.alt}
               class="w-50 h-64 object-cover block"
+              loading="lazy"
             />
           </div>
         </div>
