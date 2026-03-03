@@ -28,7 +28,7 @@ const images: string[] = fs.existsSync(worksDir)
 
     <div id="works-container" class="mt-6 mx-6 sm:mx-auto sm:w-[calc(100%+4rem)] md:w-[calc(100%+8rem)] lg:w-[calc(100%+12rem)] max-w-[800px]">
       <div class="bg-black border border-white/4 shadow-(--shadow-card-full) overflow-hidden rounded-2xl w-full mx-auto">
-        <div class="relative w-full aspect-16/10 bg-surface">
+        <div class="relative w-full aspect-video bg-surface">
           <img
             id="works-img"
             src={images[0]}
@@ -36,7 +36,7 @@ const images: string[] = fs.existsSync(worksDir)
             class="absolute inset-0 h-full w-full object-cover"
             style="display:block;"
             width="800"
-            height="500"
+            height="450"
           />
         </div>
       </div>
