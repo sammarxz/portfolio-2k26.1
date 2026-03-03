@@ -54,7 +54,7 @@ const images: string[] = fs.existsSync(worksDir)
           interval = setInterval(() => {
             index = (index + 1) % images.length;
             img.src = images[index];
-          }, 500);
+          }, 1000);
         };
 
         const stop = () => clearInterval(interval);
