@@ -1,0 +1,23 @@
+---
+import type { Lang } from '../../i18n/translations';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+<div class="flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-wider">
+  <a
+    href="/"
+    class={lang === 'en' ? 'text-ink' : 'text-mute hover:text-ink transition-colors'}
+    aria-current={lang === 'en' ? 'page' : undefined}
+  >🇺🇸 EN</a>
+  <span class="text-mute">/</span>
+  <a
+    href="/pt"
+    class={lang === 'pt' ? 'text-ink' : 'text-mute hover:text-ink transition-colors'}
+    aria-current={lang === 'pt' ? 'page' : undefined}
+  >🇧🇷 PT</a>
+</div>

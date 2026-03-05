@@ -1,0 +1,84 @@
+---
+title: "Alinhamento Óptico"
+description: Por que perfeitamente centralizado nem sempre parece centralizado — e o que fazer sobre isso
+date: 2025-10-19
+readingTime: 2
+category: design
+lang: pt
+---
+
+import OpticalComparison from "../../components/blog/OpticalComparison.tsx";
+import OpticalButtonDemo from "../../components/blog/OpticalButtonDemo.tsx";
+
+Você já criou algo matematicamente perfeito que mesmo assim parecia... errado?
+
+Você mediu tudo. Usou guias. Centralizou seu ícone pixel a pixel. E ainda assim parecia desalinhado.
+
+Bem-vindo ao alinhamento óptico — onde os olhos e a matemática discordam.
+
+---
+
+## O problema
+
+Olhe para esse botão de play. Ele está perfeitamente centralizado. A matemática confirma. Mas parece centralizado para você?
+
+<OpticalComparison geometricLabel="Geométrico" opticalLabel="Óptico" showMarginLabel="Mostrar Margem" client:load />
+
+Provavelmente não. Isso acontece porque formas têm peso visual que nossos olhos percebem de forma diferente dos limites matemáticos.
+
+Triângulos, especialmente, são complicados. A maior parte da massa deles fica de um lado. Quando você os centraliza matematicamente, eles parecem se inclinar para trás.
+
+---
+
+## A solução
+
+O ajuste? Corrija pelo olho. Mova as coisas levemente até que *pareçam* equilibradas, não até que *meçam* equilibradas.
+
+No exemplo acima, tente mudar para o modo "Óptico". Note como o ícone se desloca 3px para a direita? Esse pequeno ajuste faz toda a diferença.
+
+O centro matemático usa medidas de pixels. O centro óptico usa percepção humana.
+
+Design é para humanos, não para calculadoras.
+
+---
+
+## Exemplo real
+
+É aqui que isso mais importa — na sua interface real. Compare esses dois botões:
+
+<OpticalButtonDemo geometricLabel="Geométrico" opticalLabel="Óptico" showPaddingLabel="Mostrar Padding" buttonLabel="Botão" client:load />
+
+Mesmo botão. Mesmo ícone. Só uma diferença de 4px no padding (24px à esquerda vs 20px à direita). Mas um parece polido, o outro parece desleixado.
+
+Isso se aplica em toda parte:
+- Botões de play em players de vídeo
+- Ícones em menus de navegação
+- Logos em cabeçalhos
+- Qualquer coisa com formas assimétricas
+
+---
+
+## Quando usar
+
+Nem tudo precisa de alinhamento óptico. Use quando:
+- Você tem formas direcionais (triângulos, setas, ícones irregulares)
+- Algo parece errado apesar de ser matematicamente correto
+- Você está trabalhando com ícones ao lado de texto
+- O equilíbrio visual importa mais do que a perfeição de pixels
+
+Pule quando:
+- Você está trabalhando com formas uniformes (quadrados, círculos regulares)
+- O alinhamento é em relação a uma grade, não ao centro visual
+- Você está prototipando rápido e o polimento pode esperar
+
+---
+
+## A conclusão
+
+Confie nos seus olhos. A matemática é um ponto de partida, não a linha de chegada.
+
+Se algo parece errado, provavelmente está — independente do que as ferramentas de medição dizem.
+
+Alinhamento óptico não é ser preguiçoso com as medidas. É entender que bom design serve à percepção, não à precisão.
+
+Ajuste. Itere. Quando parecer certo, está certo.

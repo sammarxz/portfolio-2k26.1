@@ -3,16 +3,27 @@ import Container from "../layout/Container.astro";
 import Button from "../ui/Button.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
-import experiences from "../../data/experience.json";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
 import type { Experience } from "../../types/data";
+
+import experiencesEn from "../../data/experience.json";
+import experiencesPt from "../../i18n/data/experience.pt.json";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
+const experiences: Experience[] = lang === "pt" ? experiencesPt : experiencesEn;
 ---
 
 <section class="animate-in delay-650">
   <Container>
-    <SectionLabel>Experience</SectionLabel>
+    <SectionLabel>{t.experienceHeading}</SectionLabel>
     <p class="mb-6 leading-relaxed text-dim">
-      6+ years building digital products at the intersection of design and
-      engineering. Here's a brief overview.
+      {t.experienceIntro}
     </p>
 
     <div class="flex flex-col mb-6">
@@ -49,7 +60,7 @@ import type { Experience } from "../../types/data";
           class="mr-2"
           aria-hidden="true"
         />
-        Download full resume
+        {t.downloadResume}
       </Button>
       <p
         class="text-sm text-mute italic text-center w-full sm:w-auto sm:text-left"

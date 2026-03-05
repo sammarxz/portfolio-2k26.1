@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusBar from '../../components/layout/StatusBar.astro';
+import Hero from '../../components/sections/Hero.astro';
+import Tools from '../../components/sections/Tools.astro';
+import ProjectsGrid from '../../components/sections/ProjectsGrid.astro';
+import Experience from '../../components/sections/Experience.astro';
+import Ventures from '../../components/sections/Ventures.astro';
+import Writing from '../../components/sections/Writing.astro';
+import Personal from '../../components/sections/Personal.astro';
+import Testimonials from '../../components/sections/Testimonials.astro';
+import Contact from '../../components/sections/Contact.astro';
+import Footer from '../../components/layout/Footer.astro';
+import { useTranslations } from '../../i18n/translations';
+
+const lang = 'pt';
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={t.pageTitle}
+  description={t.pageDescription}
+  lang={lang}
+>
+  <StatusBar lang={lang} />
+  <main id="main-content" class="flex flex-col gap-12">
+    <Hero lang={lang} />
+    <ProjectsGrid lang={lang} />
+    <Experience lang={lang} />
+    <Testimonials lang={lang} />
+    <Tools lang={lang} />
+    <Ventures lang={lang} />
+    <Writing lang={lang} />
+    <Personal lang={lang} />
+    <Contact lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</BaseLayout>

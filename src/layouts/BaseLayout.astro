@@ -2,10 +2,12 @@
 import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import UmamiAnalytics from "../components/ui/UmamiAnalytics.tsx";
+import type { Lang } from "../i18n/translations";
 
 interface Props {
   title: string;
   description: string;
+  lang?: Lang;
   image?: string;
   type?: "website" | "article";
 }
@@ -13,13 +15,14 @@ interface Props {
 const {
   title,
   description,
+  lang = "en",
   image = "/images/og-image.jpg",
   type = "website",
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -29,6 +32,8 @@ const {
     <meta name="description" content={description} />
     <meta name="theme-color" content="#0d0d0d" />
     <link rel="canonical" href={Astro.url} />
+    <link rel="alternate" hreflang="en" href="https://sammarxz.com/" />
+    <link rel="alternate" hreflang="pt" href="https://sammarxz.com/pt/" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />

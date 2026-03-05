@@ -4,12 +4,21 @@ import Container from "../layout/Container.astro";
 import HoverList from "../ui/HoverList.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
 
-const allPosts = await getCollection("blog");
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
+
+const allPosts = await getCollection("blog", ({ data }) => data.lang === lang);
 const articles = allPosts
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .map((post) => ({
-    date: post.data.date.toLocaleDateString("en-GB", {
+    date: post.data.date.toLocaleDateString(lang === "pt" ? "pt-BR" : "en-GB", {
       day: "2-digit",
       month: "2-digit",
       year: "2-digit",
@@ -17,19 +26,19 @@ const articles = allPosts
     }),
     title: post.data.title,
     readingTime: post.data.readingTime,
-    slug: `/writing/${post.id.replace(/\.mdx?$/, "")}`,
+    slug: `${lang === "pt" ? "/pt" : ""}/writing/${post.id.replace(/\.pt\.mdx?$/, "").replace(/\.mdx?$/, "")}`,
   }));
 ---
 
 <section class="animate-in delay-800">
   <Container>
-    <SectionLabel>Writing</SectionLabel>
+    <SectionLabel>{t.writingHeading}</SectionLabel>
     <HoverList class="flex flex-col">
       {
         articles.map((article) => (
           <a
             href={article.slug}
-            class="group relative z-10 flex items-center gap-4 py-2 transition-colors"
+            class="group relative z-10 flex items-start gap-4 py-2 transition-colors"
           >
             <span class="w-18 shrink-0 text-sm tabular-nums text-mute">
               {article.date}

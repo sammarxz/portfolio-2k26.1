@@ -1,0 +1,20 @@
+[
+  {
+    "name": "BeHabit",
+    "description": "Um rastreador de hábitos full-stack minimalista construído com ElysiaJS e NextJS.",
+    "url": "https://github.com/sammarxz/behabit",
+    "logo": "behabit.svg"
+  },
+  {
+    "name": "Haru",
+    "description": "Plataforma de analytics web auto-hospedada e focada em privacidade, em Elixir.",
+    "url": "https://github.com/sammarxz/haru",
+    "logo": "haru.svg"
+  },
+  {
+    "name": "Biblia em um ano",
+    "description": "Planejador de leitura bíblica em um ano com assistência de IA e PDF para impressão.",
+    "url": "https://github.com/sammarxz/bible-in-one-year",
+    "logo": "bible-365.svg"
+  }
+]

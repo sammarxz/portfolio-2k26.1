@@ -1,6 +1,15 @@
 ---
 import Container from "../layout/Container.astro";
 import Button from "../ui/Button.astro";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
 ---
 
 <header class="">
@@ -26,7 +35,7 @@ import Button from "../ui/Button.astro";
               <span
                 class="text-xs font-semibold text-ink whitespace-nowrap pl-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 uppercase tracking-wide block"
               >
-                Available for work
+                {t.availableForWork}
               </span>
             </div>
           </div>
@@ -48,15 +57,12 @@ import Button from "../ui/Button.astro";
           height="18"
         />
       </h1>
-      <p class="text-dim">Full-stack Engineer</p>
+      <p class="text-dim">{t.role}</p>
     </div>
 
     <!-- Bio -->
     <p class="mb-6 leading-relaxed text-dim animate-in delay-200">
-      I'm Sam, a Frontend Engineer expanding into full-stack. Years shipping
-      pixel-perfect interfaces taught me that great products aren't built in
-      layers — they're built whole. Now I'm closing the gap: from the component
-      to the API, from the design system to the database.
+      {t.bio}
     </p>
 
     <!-- CTAs -->
@@ -70,13 +76,13 @@ import Button from "../ui/Button.astro";
         aria-live="polite"
         aria-atomic="true"
       >
-        Press
+        {t.pressKey}
         <span
           class="flex h-5 w-5 items-center justify-center rounded bg-surface border border-rim text-xs font-mono text-ink shadow-(--shadow-card-inset) group-hover:bg-lift transition-colors"
         >
           C
         </span>
-        to copy my email
+        {t.copyEmailHint}
       </button>
 
       <!-- Mobile: Get in touch -->
@@ -85,13 +91,13 @@ import Button from "../ui/Button.astro";
         href="mailto:sammarxz@proton.me"
         class="w-full sm:hidden items-center justify-center"
       >
-        Get in touch
+        {t.getInTouch}
       </Button>
     </div>
   </Container>
 </header>
 
-<script>
+<script define:vars={{ copiedText: t.copied, pressKey: t.pressKey, copyEmailHint: t.copyEmailHint }}>
   const email = "sammarxz@proton.me";
 
   function copyEmail() {
@@ -99,7 +105,7 @@ import Button from "../ui/Button.astro";
     const btn = document.getElementById("copy-email-btn");
     if (btn) {
       const originalHtml = btn.innerHTML;
-      btn.innerHTML = "Copied!";
+      btn.innerHTML = copiedText;
       btn.classList.add("text-accent");
       setTimeout(() => {
         btn.innerHTML = originalHtml;

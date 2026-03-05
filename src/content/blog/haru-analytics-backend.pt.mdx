@@ -1,0 +1,344 @@
+---
+title: "Haru Analytics: Construindo um Backend de Alta Performance em Elixir"
+description: Do zero a 10ms de tempo de resposta. Um mergulho profundo em arquitetura de sistemas, OTP e o modelo de atores com Elixir e Phoenix.
+date: 2026-02-27
+readingTime: 12
+category: engineering
+lang: pt
+---
+
+import CodeBlock from "../../components/blog/CodeBlock.astro";
+import ArticleImage from "../../components/blog/ArticleImage.astro";
+
+> "Haru" é o nome da minha cadela Akita Inu. Quando precisei nomear o projeto, veio naturalmente — afinal, ela me acompanhou em cada linha de código.
+
+<ArticleImage
+  src="/images/articles/haru/haru-original.png"
+  alt="Haru - Minha Akita Inu"
+  caption="Conheça a Haru, a inspiração para o nome deste projeto."
+/>
+
+---
+
+## Por que Elixir?
+
+Eu poderia ter escolhido Node.js, que conheço bem. Poderia ter ido de FastAPI com Python. Mas queria algo diferente — queria sentir na prática como um paradigma funcional com concorrência real se comporta em um sistema que lida com muitas requisições em tempo real.
+
+O Elixir chamou minha atenção por algumas razões que não esperava gostar tanto:
+
+**Foi criado por um brasileiro.** José Valim criou o Elixir em 2012, e só isso já me enche de orgulho. A linguagem foi construída sobre a VM do Erlang (BEAM), que tem alimentado sistemas de telecomunicações há décadas, mas com uma sintaxe muito mais amigável e ferramental moderno. Saber que um brasileiro está por trás de uma das linguagens mais elegantes que já usei me motivou ainda mais.
+
+**O paradigma funcional muda como você pensa.** Dados imutáveis, funções puras, pattern matching, o operador pipe... no começo parece estranho. Depois de uma semana, você começa a se perguntar por que passou tanto tempo aceitando efeitos colaterais escondidos.
+
+**OTP é mágica.** GenServers, Supervisors, ETS, PubSub — tudo isso vem "de fábrica" com Elixir/Erlang. Não é uma biblioteca de terceiros; é a própria plataforma.
+
+<ArticleImage
+  src="/images/articles/haru/3.png"
+  alt="Landing page do Haru Analytics"
+  caption="Haru Analytics: Uma plataforma de analytics em tempo real focada em privacidade."
+/>
+
+---
+
+## O Projeto: Haru Analytics
+
+O Haru é uma plataforma leve de analytics web auto-hospedada, construída com Elixir e Phoenix LiveView. Rastreia pageviews, referrers, dispositivos e países em tempo real, **sem cookies, sem rastreamento de terceiros e sem dados pessoais**.
+
+O objetivo era construir algo que eu pudesse usar de verdade em produção — não apenas um CRUD de tutorial.
+
+**Funcionalidades principais:**
+
+- Dashboard em tempo real com gráfico de 24h, visitantes ativos, top páginas, referrers, países e dispositivos.
+- Suporte a múltiplos sites, cada um com um token de API isolado.
+- Endpoint de rastreamento respondendo em menos de 10ms via escritas assíncronas.
+- Cache ETS com TTL de 60 segundos por site.
+- Compatível com LGPD — IPs são hasheados com SHA-256 e nunca persistidos em formato bruto.
+- Rate limiting sem Redis, usando apenas ETS.
+- Dashboards públicos compartilháveis.
+- Script de rastreamento com menos de 2KB.
+
+---
+
+## Arquitetura: Umbrella Application
+
+Uma das primeiras decisões foi estruturar o projeto como um **Elixir Umbrella**, separando responsabilidades em dois apps independentes:
+
+<CodeBlock
+  lang="text"
+  filename="Estrutura do Projeto"
+  code={`haru/
+├── apps/
+│   ├── haru_core/   # Lógica de negócio, OTP, banco de dados
+│   └── haru_web/    # Phoenix, LiveView, controllers, rotas`}
+/>
+
+Isso força uma separação real de responsabilidades. `haru_web` depende de `haru_core`, mas nunca o contrário. Se um dia eu quiser expor uma API GraphQL ou um worker separado, posso criar um terceiro app no umbrella sem tocar nos outros.
+
+---
+
+## A Árvore de Supervisão: "Let it Crash"
+
+Uma das mentalidades mais difíceis de absorver vindo de outros paradigmas é o "let it crash" (deixa crashar). Em vez de proteger cada linha com try/catch, você define **supervisores** que reiniciam automaticamente processos com falha.
+
+<CodeBlock
+  lang="text"
+  filename="Árvore de Supervisão"
+  code={`HaruCore.Application
+├── HaruCore.Repo                          (pool de conexões com o banco)
+├── Phoenix.PubSub [HaruCore.PubSub]       (mensagens entre apps)
+├── Registry [HaruCore.SiteRegistry]       (lookup de processo por nome)
+├── DynamicSupervisor [Sites.DynamicSupervisor]
+│   ├── SiteServer(site_id=1)
+│   └── SiteServer(site_id=N)
+├── StatsCache                             (tabela ETS)
+├── StatsRefresher                         (flush periódico a cada 60s)
+└── Task.Supervisor [HaruCore.Tasks]       (escritas assíncronas)`}
+/>
+
+Cada site que recebe um evento tem seu próprio **GenServer** (um processo leve na BEAM). Se esse processo morre por qualquer motivo, o supervisor o reinicia automaticamente. O resto do sistema continua funcionando.
+
+---
+
+## SiteServer: Um GenServer por Site
+
+Para rastrear visitantes ativos em tempo real, criei um GenServer para cada site. Ele mantém um mapa em memória de `ip_hash -> last_seen_ms` dentro de uma janela de 5 minutos.
+
+<CodeBlock lang="elixir" filename="apps/haru_core/lib/haru_core/sites/site_server.ex" code={`defmodule HaruCore.Sites.SiteServer do
+  use GenServer, restart: :transient
+
+@visitor*ttl_ms 5 * 60 \_ 1_000
+
+def start_link(site_id) do
+GenServer.start_link(**MODULE**, site_id, name: via(site_id))
+end
+
+def record_event(site_id, event_params) do
+GenServer.cast(via(site_id), {:record_event, event_params})
+end
+
+def active_visitor_count(site_id) do
+GenServer.call(via(site_id), :active_visitor_count)
+end
+
+@impl GenServer
+def handle_cast({:record_event, %{ip_hash: ip_hash}}, state) do
+now = System.monotonic_time(:millisecond)
+updated_visitors = Map.put(state.active_visitors, ip_hash, now)
+{:noreply, %{state | active_visitors: updated_visitors}}
+end
+
+@impl GenServer
+def handle_call(:active_visitor_count, \_from, state) do
+cutoff = System.monotonic_time(:millisecond) - @visitor_ttl_ms
+
+    count =
+      state.active_visitors
+      |> Enum.count(fn {_ip_hash, last_seen} -> last_seen > cutoff end)
+
+    {:reply, count, state}
+
+end
+
+defp via(site_id) do
+{:via, Registry, {HaruCore.SiteRegistry, site_id}}
+end
+end`} />
+
+`GenServer.cast` é fire-and-forget — o chamador não bloqueia esperando resposta. Isso é fundamental para manter o endpoint de rastreamento rápido. `GenServer.call` bloqueia, mas é usado apenas no dashboard onde alguns milissegundos de latência são perfeitamente aceitáveis.
+
+---
+
+## O Endpoint de Rastreamento: Menos de 10ms
+
+O endpoint `POST /api/collect` é o coração do sistema. Precisa ser rápido — qualquer latência afeta o site do cliente.
+
+A solução foi separar o caminho síncrono (validação + cast para o GenServer) do caminho assíncrono (escrita no banco + invalidação de cache + broadcast via PubSub):
+
+<CodeBlock lang="elixir" filename="apps/haru_web/lib/haru_web_web/api/collect_controller.ex" code={`defmodule HaruWebWeb.Api.CollectController do
+  def create(conn, params) do
+    with token when not is_nil(token) <- extract_token(conn),
+         site when not is_nil(site) <- Sites.get_site_by_token(token),
+         path when is_binary(path) and path != "" <- Map.get(params, "p", "/") do
+      ip = format_ip(conn.remote_ip)
+
+      event_attrs = %{
+        site_id: site.id,
+        name: Map.get(params, "n", "pageview"),
+        path: path,
+        referrer: Map.get(params, "r"),
+        user_agent: get_req_header(conn, "user-agent") |> List.first(),
+        screen_width: parse_int(Map.get(params, "sw")),
+        screen_height: parse_int(Map.get(params, "sh")),
+        duration_ms: parse_int(Map.get(params, "d")),
+        country: sanitize_country(Map.get(params, "c")),
+        ip: ip
+      }
+
+      # Síncrono: validar e registrar visitante ativo (~µs)
+      Supervisor.ensure_started(site.id)
+      SiteServer.record_event(site.id, %{ip_hash: Analytics.hash_ip(ip)})
+
+      # Assíncrono: escrita no banco, cache e PubSub (fire-and-forget)
+      Task.Supervisor.start_child(HaruCore.Tasks.Supervisor, fn ->
+        persist_event(event_attrs, site.id)
+      end)
+
+      send_resp(conn, 200, "")
+    else
+      nil -> send_resp(conn, 401, "")
+      _ -> send_resp(conn, 400, "")
+    end
+
+end
+end`} />
+
+O `with` do Elixir é perfeito para esse padrão: cada cláusula precisa ser satisfeita para continuar. Se alguma falhar, vai direto para o bloco `else`. Muito mais limpo que ifs aninhados.
+
+---
+
+## Cache com ETS: Alta Concorrência sem Redis
+
+Para evitar bater no banco em cada requisição do dashboard, implementei um cache usando ETS (Erlang Term Storage) — uma store de tabelas em memória que faz parte da BEAM.
+
+<CodeBlock lang="elixir" filename="apps/haru_core/lib/haru_core/cache/stats_cache.ex" code={`defmodule HaruCore.Cache.StatsCache do
+  use GenServer
+
+@table :haru_stats_cache
+@ttl_ms 60_000
+
+def get(site_id, period) do
+now = System.monotonic_time(:millisecond)
+key = {site_id, period}
+
+    case :ets.lookup(@table, key) do
+      [{^key, stats, expiry}] when expiry > now -> stats
+      _ -> nil
+    end
+
+end
+
+def put(site_id, period, stats) do
+expiry = System.monotonic_time(:millisecond) + @ttl_ms
+:ets.insert(@table, {{site_id, period}, stats, expiry})
+end
+
+def invalidate*site(site_id) do
+:ets.select_delete(@table, [{{{site_id, :*}, :_, :_}, [], [true]}])
+end
+
+@impl GenServer
+def init(\_) do
+:ets.new(@table, [:named_table, :public, :set, read_concurrency: true])
+{:ok, %{}}
+end
+end`} />
+
+O detalhe crucial: `read_concurrency: true`. Isso permite que múltiplos processos leiam a tabela simultaneamente sem bloqueio. Em outros runtimes, isso exigiria uma solução externa (Redis, Memcached). Em Elixir, é uma linha de configuração.
+
+<ArticleImage
+  src="/images/articles/haru/4.png"
+  alt="Informações do script de rastreamento"
+  caption="O script de rastreamento é leve e fácil de integrar."
+/>
+
+---
+
+## LGPD Sem Dor: SHA-256 para IPs
+
+Para contar visitantes únicos sem armazenar endereços IP, uso um hash SHA-256. O IP bruto nunca é persistido.
+
+<CodeBlock
+  lang="elixir"
+  filename="Hash de IP"
+  code={`def hash_ip(ip) when is_binary(ip) do
+  :crypto.hash(:sha256, ip) |> Base.encode16(case: :lower)
+end`}
+/>
+
+Simples, mas resolve o problema completamente. O hash não pode ser revertido, então nenhum dado pessoal existe no banco. Isso elimina a necessidade de banners de cookies para analytics básico.
+
+---
+
+## Rate Limiting sem Redis
+
+O rate limiting foi implementado usando a biblioteca `Hammer` com backend ETS — nenhum serviço externo necessário:
+
+<CodeBlock lang="elixir" filename="apps/haru_web/lib/haru_web_web/plugs/tracking_rate_limit.ex" code={`defmodule HaruWebWeb.Plugs.TrackingRateLimit do
+  @limit 100
+  @period_ms 60_000
+
+def call(conn, \_opts) do
+ip = format_ip(conn.remote_ip)
+
+    case HaruWebWeb.RateLimiter.hit("tracking:#{ip}", @period_ms, @limit) do
+      {:allow, _count} ->
+        conn
+
+      {:deny, _timeout} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(429, ~s({"error":"rate_limit_exceeded"}))
+        |> halt()
+    end
+
+end
+end`} />
+
+100 requisições por minuto por IP para o endpoint de rastreamento. Para autenticação, o limite é ainda mais restrito (10 por minuto) para evitar ataques de força bruta. Ambos os plugs rodam no pipeline do Phoenix antes de chegar aos controllers.
+
+---
+
+## Phoenix LiveView: O Dashboard em Tempo Real
+
+O dashboard atualiza em tempo real sem escrever uma única linha de código WebSocket manual. O PubSub cuida da comunicação entre o processo que recebe um evento e o processo LiveView que renderiza o dashboard do cliente:
+
+1.  **LiveView.mount** → inscrever em `"site:#{site_id}"` → `Analytics.get_stats` (hit no ETS ou query).
+2.  **LiveView.handle_info** `{:new_event, site_id}` → `Analytics.get_stats` (recarrega stats frescos) → `SiteServer.active_visitors` → `push_event` para o Chart.js.
+
+Cada usuário com o dashboard aberto tem seu próprio processo LiveView. Quando um evento chega, o PubSub o transmite para todos os processos inscritos. É concorrência real, não polling.
+
+<ArticleImage
+  src="/images/articles/haru/1.png"
+  alt="Dashboard em tempo real do Haru"
+  caption="O dashboard em tempo real alimentado pelo Phoenix LiveView."
+/>
+
+---
+
+## Decisões Técnicas e Lições Aprendidas
+
+- **PostgreSQL sem TimescaleDB.** Fui tentado a usar TimescaleDB para dados de séries temporais. Porém, para o estágio atual, adicionar mais infraestrutura aumentaria a complexidade sem benefícios claros. PostgreSQL puro com índices bem posicionados dá conta do volume tranquilamente.
+- **Task.Supervisor para escritas assíncronas.** Em vez de uma fila de tarefas externa, uso o `Task.Supervisor` nativo do Erlang. Para o volume atual, é mais do que suficiente e mantém zero dependências externas.
+- **Umbrella Application vale a complexidade.** Pode parecer burocrático no início, mas a separação forçada evita o acoplamento forte que eu teria criado num monolito. Hoje, `haru_core` pode ser testado completamente independente de `haru_web`.
+- **Pattern Matching transforma a lógica condicional.** Essa foi a maior mudança de mentalidade. Em vez de `if` e `case` com condições complexas, você declara as formas de dados que espera. O compilador avisa se você deixar algum caso de fora.
+
+---
+
+## Stack Completo
+
+| Camada        | Tecnologia                       |
+| ------------- | -------------------------------- |
+| Linguagem     | Elixir 1.16+ / OTP 26+           |
+| Web           | Phoenix 1.8 + LiveView 1.1       |
+| Banco         | PostgreSQL + Ecto 3.13           |
+| Tempo real    | Phoenix PubSub                   |
+| Cache         | ETS (Erlang Term Storage)        |
+| Rate Limiting | Hammer 7.x (backend ETS)         |
+| Frontend      | TailwindCSS + DaisyUI + Chart.js |
+| Deploy        | Docker + Traefik                 |
+
+---
+
+## Conclusão
+
+Construir o Haru foi a melhor decisão que tomei para aprender Elixir. Você não absorve OTP só lendo documentação — precisa sentir na prática o que acontece quando um GenServer recebe mil casts por segundo, ou quando o PubSub transmite para dezenas de LiveViews simultaneamente.
+
+O paradigma funcional muda como você pensa sobre software. Dados imutáveis eliminam uma classe inteira de bugs. Pattern matching torna a intenção do código explícita. A BEAM garante isolamento real entre processos.
+
+O repositório é público. A Haru (a cachorra) aprova.
+
+<ArticleImage
+  src="/images/articles/haru/banner.png"
+  alt="Banner do Haru Analytics"
+  caption="Haru Analytics: Analytics web auto-hospedado e focado em privacidade."
+/>

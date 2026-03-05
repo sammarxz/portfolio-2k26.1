@@ -3,18 +3,30 @@ import Container from "../layout/Container.astro";
 import HoverList from "../ui/HoverList.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
-import ventures from "../../data/ventures.json";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
+
+import venturesEn from "../../data/ventures.json";
+import venturesPt from "../../i18n/data/ventures.pt.json";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
+const ventures = lang === "pt" ? venturesPt : venturesEn;
 ---
 
 <section class="animate-in delay-700">
   <Container>
-    <SectionLabel>Ventures</SectionLabel>
+    <SectionLabel>{t.venturesHeading}</SectionLabel>
     <HoverList class="flex flex-col">
       {
         ventures.map((v) => (
           <a
             href={v.url}
-            class="group relative z-10 flex items-center gap-4 py-4 transition-colors"
+            class="group relative z-10 flex items-start gap-4 py-4 transition-colors"
           >
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl overflow-hidden border border-white/4 shadow-(--shadow-card-inset)">
               <img

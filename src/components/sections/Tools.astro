@@ -2,11 +2,20 @@
 import Container from '../layout/Container.astro';
 import SectionLabel from '../ui/SectionLabel.astro';
 import tools from '../../data/tools.json';
+import { useTranslations } from '../../i18n/translations';
+import type { Lang } from '../../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
 ---
 
 <section class="animate-in delay-600">
   <Container>
-    <SectionLabel>Tools</SectionLabel>
+    <SectionLabel>{t.toolsHeading}</SectionLabel>
     <div
       class="relative overflow-hidden"
       style="mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);"

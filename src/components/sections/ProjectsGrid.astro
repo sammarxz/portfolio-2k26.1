@@ -3,6 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Container from '../layout/Container.astro';
 import SectionLabel from '../ui/SectionLabel.astro';
+import { useTranslations } from '../../i18n/translations';
+import type { Lang } from '../../i18n/translations';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
 
 const worksDir = path.join(process.cwd(), 'public/images/works');
 
@@ -22,8 +31,8 @@ const images: string[] = fs.existsSync(worksDir)
 {images.length > 0 && (
   <section class="animate-in delay-500">
     <Container>
-      <SectionLabel>Selected Works</SectionLabel>
-      <p class="text-dim">Here are some of my favorite projects I've worked on.</p>
+      <SectionLabel>{t.worksHeading}</SectionLabel>
+      <p class="text-dim">{t.worksDesc}</p>
     </Container>
 
     <div id="works-container" class="mt-6 mx-6 sm:mx-auto sm:w-[calc(100%+4rem)] md:w-[calc(100%+8rem)] lg:w-[calc(100%+12rem)] max-w-[800px]">
@@ -45,7 +54,7 @@ const images: string[] = fs.existsSync(worksDir)
     <script define:vars={{ images }}>
       const img = document.getElementById('works-img');
       const container = document.getElementById('works-container');
-      
+
       if (img && images.length > 1) {
         let index = 0;
         let interval;

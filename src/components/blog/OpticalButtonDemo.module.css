@@ -1,0 +1,206 @@
+.card {
+  margin: 3em 0;
+  width: 100%;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.pillsContainer {
+  display: flex;
+  gap: 2px;
+  background: #1a1a1a;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pill {
+  position: relative;
+  height: 32px;
+  padding: 0 1em;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #999;
+  transition: color 0.2s ease;
+}
+
+.pill:hover { color: #e0e0e0; }
+
+.pillBg {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #2a2a2a;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 0;
+}
+
+.pillActive { color: #e0e0e0; }
+.pillActive .pillBg { opacity: 1; }
+
+.pillText {
+  position: relative;
+  z-index: 10;
+}
+
+.cardBody {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  background: #1a1a1a;
+  padding: 2em;
+}
+
+.demoArea {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paddingLabel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25em 0.5em;
+  border-radius: 9999px;
+  border: 1px solid #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  font-size: 0.875em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 500;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.showPadding .paddingLabel { opacity: 1; }
+
+.paddingLabelLeft { left: -4em; }
+.paddingLabelRight { right: -4em; }
+
+.actionBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.375em;
+  height: 48px;
+  background: #2a2a2a;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1.125em;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #e0e0e0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s, padding 0.2s;
+}
+
+.actionBtn:hover { background: #333; }
+
+.arrowIcon {
+  width: 22px;
+  height: 22px;
+  fill: #e0e0e0;
+  flex-shrink: 0;
+}
+
+.paddingBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(34, 197, 94, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s, width 0.2s;
+}
+
+.showPadding .paddingBar { opacity: 1; }
+
+.paddingBarLeft { left: 0; }
+.paddingBarRight { right: 0; }
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.6em;
+  background: #1a1a1a;
+  border-top: 1px solid #2a2a2a;
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxInput { display: none; }
+
+.checkboxBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #1a1a1a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.checkboxInput:checked + .checkboxBox {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.checkIcon {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s;
+}
+
+.checkboxInput:checked + .checkboxBox .checkIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkboxText {
+  font-size: 0.875em;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #e0e0e0;
+}
+
+@media (max-device-width: 600px) {
+  .cardBody { min-height: 280px; padding: 1.5em 1em; }
+  .actionBtn { height: 44px; font-size: 1em; }
+  .arrowIcon { width: 20px; height: 20px; }
+  .paddingLabel { font-size: 0.75em; padding: 0.2em 0.4em; }
+  .paddingLabelLeft { left: -2.5em; }
+  .paddingLabelRight { right: -2.5em; }
+  .pill { height: 28px; padding: 0 0.75em; font-size: 0.85em; }
+}

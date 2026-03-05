@@ -3,16 +3,24 @@ import Container from "../layout/Container.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
 import personal from "../../data/personal.json";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
 
 const { photos, podcast } = personal;
 ---
 
 <section>
   <Container>
-    <SectionLabel as="h2" class="animate-in delay-100">Personal</SectionLabel>
+    <SectionLabel as="h2" class="animate-in delay-100">{t.personalHeading}</SectionLabel>
     <p class="mb-6 leading-relaxed text-dim animate-in delay-150">
-      In my free time, I enjoy spend time with my family, go to walk with my
-      dogs, read books, and sharing my learnings on my podcast.
+      {t.personalBio}
     </p>
 
     <!-- Podcast Widget -->
@@ -36,7 +44,7 @@ const { photos, podcast } = personal;
             >{podcast.name}</span
           >
           <span class="text-sm text-mute leading-tight"
-            >{podcast.description}</span
+            >{t.podcastDescription}</span
           >
         </div>
         <Icon
@@ -49,7 +57,7 @@ const { photos, podcast } = personal;
       </a>
       <div class="flex flex-wrap items-center justify-between px-1">
         <span class="text-sm text-mute font-medium"
-          >Weekly Podcast in Portuguese</span
+          >{t.weeklyPodcast}</span
         >
         <a
           href={podcast.spotify}
@@ -57,7 +65,7 @@ const { photos, podcast } = personal;
           rel="noopener noreferrer"
           class="flex items-center gap-1.5 text-sm text-mute hover:text-ink transition-colors font-medium"
         >
-          Listen on Spotify
+          {t.listenOnSpotify}
           <Icon name="spotify" width={16} height={16} aria-hidden="true" />
         </a>
       </div>
@@ -113,7 +121,7 @@ const { photos, podcast } = personal;
   <Container>
     <div class="flex items-center justify-between px-1 animate-in delay-400">
       <span class="flex items-center gap-1.5 text-xs text-mute font-medium">
-        Some parts of my life :)
+        {t.somePartsOfMyLife}
       </span>
       <a
         href="https://instagram.com/sammm.dev"
@@ -121,7 +129,7 @@ const { photos, podcast } = personal;
         rel="noopener noreferrer"
         class="flex items-center gap-1.5 text-xs text-mute hover:text-ink transition-colors font-medium"
       >
-        See more on IG
+        {t.seeMoreOnIG}
         <Icon
           name="lucide:instagram"
           width={15}

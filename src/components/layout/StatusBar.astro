@@ -1,15 +1,20 @@
 ---
 import Container from "./Container.astro";
+import LanguageSwitcher from "../ui/LanguageSwitcher.astro";
 import { Icon } from "astro-icon/components";
+import type { Lang } from "../../i18n/translations";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
 ---
 
 <div class="pt-6 pb-12 md:py-12 animate-in">
   <Container>
     <div class="flex items-center justify-between">
-      <span
-        class="font-mono text-xs font-medium uppercase tracking-wider text-mute"
-        >EST. 1996</span
-      >
+      <LanguageSwitcher lang={lang} />
 
       <div class="flex items-center gap-1.5">
         <Icon

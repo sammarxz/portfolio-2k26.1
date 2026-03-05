@@ -4,6 +4,15 @@ import Button from "../ui/Button.astro";
 import HoverList from "../ui/HoverList.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
 import { Icon } from "astro-icon/components";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
 
 const FORMSPREE_ID = import.meta.env.PUBLIC_FORMSPREE_ID;
 
@@ -40,9 +49,9 @@ const inputClass =
 
 <section class="animate-in delay-900">
   <Container>
-    <SectionLabel as="h2">Contact</SectionLabel>
+    <SectionLabel as="h2">{t.contactHeading}</SectionLabel>
     <p class="mb-6 text-base text-dim">
-      You can contact me using the form or via the links below.
+      {t.contactIntro}
     </p>
 
     <div class="flex flex-col gap-6">
@@ -56,12 +65,12 @@ const inputClass =
         <div class="flex flex-col sm:flex-row gap-4">
           <label class="flex flex-col gap-1.5 w-full">
             <span class="text-xs font-medium text-mute uppercase tracking-wide">
-              Name
+              {t.nameLabel}
             </span>
             <input
               type="text"
               name="name"
-              placeholder="Your name"
+              placeholder={t.namePlaceholder}
               required
               autocomplete="name"
               class={inputClass}
@@ -69,12 +78,12 @@ const inputClass =
           </label>
           <label class="flex flex-col gap-1.5 w-full">
             <span class="text-xs font-medium text-mute uppercase tracking-wide">
-              Email
+              {t.emailLabel}
             </span>
             <input
               type="email"
               name="email"
-              placeholder="your@email.com"
+              placeholder={t.emailPlaceholder}
               required
               autocomplete="email"
               class={inputClass}
@@ -84,11 +93,11 @@ const inputClass =
 
         <label class="flex flex-col gap-1.5">
           <span class="text-xs font-medium text-mute uppercase tracking-wide">
-            Message
+            {t.messageLabel}
           </span>
           <textarea
             name="message"
-            placeholder="Tell me about your project..."
+            placeholder={t.messagePlaceholder}
             rows="5"
             required
             class={inputClass + " resize-y"}></textarea>
@@ -96,29 +105,29 @@ const inputClass =
 
         <div class="flex items-center justify-between">
           <Button type="submit" variant="secondary" class="w-full sm:w-auto">
-            Send message
+            {t.sendMessage}
           </Button>
           <span
             class="hidden sm:flex items-center gap-1.5 text-sm text-mute"
             aria-hidden="true"
           >
-            or
+            {t.or}
             <Icon
               name="lucide:corner-down-left"
               width={12}
               height={12}
               class="translate-y-px"
             />
-            Enter to send
+            {t.enterToSend}
           </span>
         </div>
 
         <div role="status" aria-live="polite">
           <p id="form-success" class="hidden text-sm text-accent">
-            Message sent! I'll get back to you soon.
+            {t.successMessage}
           </p>
           <p id="form-error" class="hidden text-sm text-red-400">
-            Something went wrong. Please try again.
+            {t.errorMessage}
           </p>
         </div>
       </form>
@@ -165,11 +174,9 @@ const inputClass =
   </Container>
 </section>
 
-<script>
-  const form = document.getElementById("contact-form") as HTMLFormElement;
-  const submitBtn = form?.querySelector(
-    'button[type="submit"]',
-  ) as HTMLButtonElement;
+<script define:vars={{ sendingText: t.sending, sentText: t.sent }}>
+  const form = document.getElementById("contact-form");
+  const submitBtn = form?.querySelector('button[type="submit"]');
   const successMsg = document.getElementById("form-success");
   const errorMsg = document.getElementById("form-error");
 
@@ -177,7 +184,7 @@ const inputClass =
     e.preventDefault();
 
     const originalText = submitBtn.textContent;
-    submitBtn.textContent = "Sending…";
+    submitBtn.textContent = sendingText;
     submitBtn.disabled = true;
     successMsg?.classList.add("hidden");
     errorMsg?.classList.add("hidden");
@@ -192,7 +199,7 @@ const inputClass =
       if (res.ok) {
         form.reset();
         successMsg?.classList.remove("hidden");
-        submitBtn.textContent = "Sent!";
+        submitBtn.textContent = sentText;
       } else {
         throw new Error();
       }

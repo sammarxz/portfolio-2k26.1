@@ -1,0 +1,26 @@
+[
+  {
+    "period": "2024 — 2025",
+    "role": "Desenvolvedor Front-End na",
+    "company": "Scriptcase",
+    "description": "Liderou a modernização do stack tecnológico com Headless CMS + Next.js 14, construiu um Design System completo do zero e redesenhou páginas estratégicas com foco em conversão e UX."
+  },
+  {
+    "period": "2023",
+    "role": "Desenvolvedor Front-End na",
+    "company": "TCS",
+    "description": "Desenvolveu o CloudX, uma plataforma enterprise de governança de nuvem (AWS, GCP, Azure) utilizada por milhares de funcionários da J&J no mundo todo, construída com React, Redux, Material-UI e GraphQL."
+  },
+  {
+    "period": "2022",
+    "role": "Desenvolvedor Front-End na",
+    "company": "Zenvia",
+    "description": "Liderou uma migração em larga escala de Class Components legados para React Hooks modernos, e criou um novo Design System garantindo consistência em toda a aplicação."
+  },
+  {
+    "period": "2017 — 2019",
+    "role": "Desenvolvedor Full-Stack na",
+    "company": "Buzz Lab",
+    "description": "Entregou sites institucionais e landing pages do início ao fim (design até deploy). Construiu sistemas web com Python (Flask/Django) e introduziu React e Angular para gerenciamento avançado de UI."
+  }
+]

@@ -1,14 +1,14 @@
 ---
 import { getCollection, render } from "astro:content";
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import Container from "../../components/layout/Container.astro";
-import Footer from "../../components/layout/Footer.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Container from "../../../components/layout/Container.astro";
+import Footer from "../../../components/layout/Footer.astro";
 import { Icon } from "astro-icon/components";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("blog", ({ data }) => data.lang !== "pt");
+  const posts = await getCollection("blog", ({ data }) => data.lang === "pt");
   return posts.map((post) => ({
-    params: { slug: post.id.replace(/\.mdx?$/, "") },
+    params: { slug: post.id.replace(/\.pt\.mdx?$/, "").replace(/\.mdx?$/, "") },
     props: { post },
   }));
 }
@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 
-const formattedDate = post.data.date.toLocaleDateString("en-GB", {
+const formattedDate = post.data.date.toLocaleDateString("pt-BR", {
   day: "2-digit",
   month: "2-digit",
   year: "2-digit",
@@ -27,16 +27,17 @@ const formattedDate = post.data.date.toLocaleDateString("en-GB", {
 <BaseLayout
   title={`${post.data.title} — Sam Marxz`}
   description={post.data.description}
+  lang="pt"
   type="article"
 >
   <div class="pt-6 pb-12 md:py-12 animate-in">
     <Container>
       <a
-        href="/"
+        href="/pt"
         class="inline-flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-wider text-mute transition-colors hover:text-dim"
       >
         <Icon name="lucide:arrow-left" width={12} height={12} />
-        Back
+        Voltar
       </a>
     </Container>
   </div>
@@ -49,7 +50,7 @@ const formattedDate = post.data.date.toLocaleDateString("en-GB", {
           <span class="text-neutral-500">&middot;</span>
           <div class="flex items-center gap-1 text-mute">
             <Icon name="lucide:clock" width={11} height={11} />
-            <span class="text-xs">{post.data.readingTime} min read</span>
+            <span class="text-xs">{post.data.readingTime} min de leitura</span>
           </div>
         </div>
 
@@ -72,7 +73,7 @@ const formattedDate = post.data.date.toLocaleDateString("en-GB", {
     </Container>
   </main>
 
-  <Footer />
+  <Footer lang="pt" />
 </BaseLayout>
 
 <style is:global>

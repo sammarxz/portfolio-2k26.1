@@ -1,12 +1,23 @@
 ---
 import Container from "../layout/Container.astro";
 import SectionLabel from "../ui/SectionLabel.astro";
-import testimonials from "../../data/testimonials.json";
+import { useTranslations } from "../../i18n/translations";
+import type { Lang } from "../../i18n/translations";
+import testimonialsEn from "../../data/testimonials.json";
+import testimonialsPt from "../../i18n/data/testimonials.pt.json";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = "en" } = Astro.props;
+const t = useTranslations(lang);
+const testimonials = lang === "pt" ? testimonialsPt : testimonialsEn;
 ---
 
 <section class="animate-in delay-800">
   <Container>
-    <SectionLabel>Testimonials</SectionLabel>
+    <SectionLabel>{t.testimonialsHeading}</SectionLabel>
 
     <div class="flex flex-col gap-3 sm:flex-row sm:h-[260px]">
       {

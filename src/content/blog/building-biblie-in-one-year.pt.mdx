@@ -1,0 +1,263 @@
+---
+title: 'Construindo "Bíblia em um ano": Do Markdown ao Micro-SaaS'
+description: "Como transformei um projeto abandonado em um produto full-stack com IA usando FastAPI, LangChain e React com arquitetura hexagonal."
+date: 2026-02-28
+readingTime: 7
+category: engineering
+lang: pt
+---
+
+import CodeBlock from "../../components/blog/CodeBlock.astro";
+import ArticleImage from "../../components/blog/ArticleImage.astro";
+
+Este post é sobre código. Mas também é sobre mudança de carreira, uma ideia que ficou na gaveta por um ano, e aprender a construir coisas que eu realmente quero usar.
+
+<ArticleImage
+  src="/images/articles/bible/1.png"
+  alt="Logo Bible-365"
+  caption="Bible-365: Planejador de leitura bíblica com assistência de IA."
+/>
+
+## Contexto Pessoal
+
+Trabalho com front-end há alguns anos. React, TypeScript, componentes, design systems — é território que conheço bem e ainda curto. Mas com o tempo, comecei a sentir que esse espaço isolado estava ficando estreito, tanto em termos de mercado quanto de motivação. Front-end sozinho não se paga como antes, e comecei a encarar essa realidade de frente.
+
+Estou atualmente no processo de transição para um perfil mais amplo — que combine o que já sei com o que está acontecendo no mercado agora: IA, agentes, orquestração de modelos e backends em Python. A melhor forma que encontrei de aprender foi construindo. Não um tutorial, mas um produto real.
+
+E foi assim que esse projeto voltou à vida.
+
+## A Ideia Original e Por Que Não Funcionou
+
+Há cerca de um ano, criei uma versão embrionária disso. O objetivo era o mesmo: ajudar pessoas a ler a Bíblia inteira em um ano. Mas a implementação era completamente diferente.
+
+Criei arquivos Markdown, um para cada dia. Cada arquivo tinha o devocional daquele dia, o texto de leitura e um botão de "marcar como concluído". Além disso, gerei áudio para quem não quisesse ler — text-to-speech para cada devocional.
+
+O problema era escala. Manter 365 arquivos Markdown curados, cada um com texto reflexivo original, além de gerar os áudios correspondentes, não era sustentável para uma pessoa. O projeto parou no mês 2 e ficou na gaveta por um ano.
+
+O que mudou agora foi a abordagem. Em vez de eu criar o conteúdo, a IA acompanha o usuário. Em vez de devocionais estáticos, um agente responde perguntas sobre o que o usuário está lendo, conecta passagens e explica contexto histórico. O conteúdo é gerado dinamicamente através da conversa.
+
+## O que foi construído em um fim de semana
+
+O projeto tem três camadas principais:
+
+**Backend** em FastAPI com Python, usando um agente ReAct do LangChain orquestrando três ferramentas customizadas. **Frontend** em React + TypeScript com arquitetura hexagonal no lado cliente. **Infra** com Docker Compose: backend, frontend e ChromaDB como vector store.
+
+O diferencial do produto — além do agente — é o planner impresso. Os usuários geram um PDF A4 pronto para impressão que podem usar fisicamente para acompanhar a leitura, marcando os dias com caneta. Foi uma decisão deliberada de produto: pessoas tentando criar um hábito de leitura frequentemente se beneficiam de um objeto físico.
+
+O modelo de negócio é um micro-SaaS com pagamento único via Stripe: o usuário paga uma vez e recebe o PDF. O agente de IA fica disponível como valor adicional após o pagamento. Sem assinatura, sem fricção.
+
+<ArticleImage
+  src="/images/articles/bible/preview-landing.png"
+  alt="Landing Page do Bible-365"
+  caption="A landing page com o assistente de IA e as funcionalidades do planner em PDF."
+/>
+
+## Decisões Técnicas e Lições Aprendidas
+
+### 1. LangChain como Orquestrador (Sem "Fetichizar" a Biblioteca)
+
+A escolha do LangChain foi deliberada como exercício de portfólio. Queria entender o ecossistema de agentes. Mas a implementação foi mais simples do que o framework sugere. Em vez de usar `AgentExecutor` para conversas de chat (que adiciona latência e complexidade de parsing), optei por um pipeline mais direto para o endpoint principal: RAG + LLM com streaming via SSE.
+
+O agente ReAct completo ficou disponível como ferramenta interna para geração do plano e do PDF, onde a cadeia de raciocínio faz sentido. Para a interação com o usuário, simplicidade foi melhor:
+
+<CodeBlock lang="python" filename="assistant/chat.py" code={`async def assistant_chat_stream(
+    session_id: str, conv_id: str, message: str
+) -> AsyncGenerator[str, None]:
+
+    # Contexto do plano do usuário no system prompt
+    plan = get_plan(session_id)
+    onboarding = get_onboarding(session_id)
+    system_prompt = build_system_prompt(plan, onboarding)
+
+    # RAG: recupera contexto relevante do banco bíblico
+    rag_context = retrieve_context(message)
+
+    # Pipeline direto: sem overhead do ReAct para chat
+    llm = _get_llm(streaming=True)
+    async for chunk in llm.astream([
+        SystemMessage(content=f"{system_prompt}\\n\\nContexto: {rag_context}"),
+        HumanMessage(content=message)
+    ]):
+        if chunk.content:
+            escaped = chunk.content.replace("\\n", "\\\\n")
+            yield f"data: {escaped}\\n\\n"`} />
+
+A lição aqui: agentes ReAct são poderosos para tarefas que exigem raciocínio em múltiplas etapas e uso de ferramentas. Para chat conversacional com contexto já disponível, um pipeline mais simples é mais rápido e previsível.
+
+### 2. O System Prompt como Produto
+
+A parte mais difícil não foi o código — foi o system prompt do assistente. Um assistente bíblico tem desafios específicos: precisa ser acolhedor sem ser dogmático, respeitar diferentes tradições (católica, evangélica, protestante histórica, ortodoxa) e permanecer focado para não virar um chatbot genérico.
+
+O sistema carrega o plano de leitura do usuário diretamente no prompt, com uma janela de ±15 dias em torno da data atual:
+
+<CodeBlock lang="python" filename="assistant/prompts.py" code={`def build_system_prompt(plan=None, onboarding=None) -> str:
+    today = date.today().strftime("%d/%m/%Y")
+
+    # Janela de contexto: 5 dias atrás + 15 dias à frente
+    current_idx = 0
+    for i, d in enumerate(plan.days):
+        d_date = d.date if isinstance(d.date, date) else date.fromisoformat(str(d.date))
+        if d_date >= today:
+            current_idx = i
+            break
+
+    start_idx = max(0, current_idx - 5)
+    end_idx = min(len(plan.days), current_idx + 15)
+    window_days = plan.days[start_idx:end_idx]
+
+    plan_readings = "\\n".join([
+        f"Dia {start_idx + i + 1} ({d.date}): "
+        f"Principal: {', '.join(d.main_reading)} | "
+        f"Adicional: {d.proverb}, {d.psalm}"
+        for i, d in enumerate(window_days)
+    ])`} />
+
+Isso permite que o assistente saiba exatamente o que o usuário deveria estar lendo hoje, contextualize respostas sobre textos recentes e antecipe perguntas sobre os próximos. O agente não precisa "adivinhar" o contexto — recebe ele estruturado.
+
+### 3. O Gerador de Planos (O Coração da Lógica de Negócio)
+
+Distribuir 1.189 capítulos (versão protestante) ou 1.370 (versão católica) proporcionalmente pelos dias disponíveis tem mais nuances do que parece.
+
+Os usuários podem escolher: ler em exatamente 1 ano (365 dias a partir de hoje) ou terminar até 31 de dezembro do ano corrente. Podem também selecionar quais dias da semana vão ler. Com base nisso, o sistema calcula capítulos por dia dinamicamente:
+
+<CodeBlock lang="python" filename="planner/generator.py" code={`def generate_plan(data: OnboardingData, session_id: str) -> ReadingPlan:
+    start = data.start_date
+    end = _compute_end_date(data.goal, start)
+
+    # Filtrar apenas os dias da semana selecionados
+    reading_dates = _get_reading_dates(start, end, data.reading_days)
+
+    main_books = get_main_books(data.bible_version)
+    all_chapters = _expand_chapters(main_books)
+
+    total_main_chapters = len(all_chapters)
+    total_days = len(reading_dates)
+
+    # Ceiling garante que todos os capítulos sejam cobertos mesmo se os últimos dias tiverem menos
+    chapters_per_day = math.ceil(total_main_chapters / total_days)
+
+    plan_days = []
+    chapter_idx = 0
+
+    for day_num, reading_date in enumerate(reading_dates):
+        day_chapters = all_chapters[chapter_idx : chapter_idx + chapters_per_day]
+        chapter_idx = min(chapter_idx + chapters_per_day, total_main_chapters)
+
+        # Salmos e Provérbios são distribuídos separadamente, de forma cíclica ao longo do ano
+        plan_days.append(PlanDay(
+            date=reading_date,
+            main_reading=[ref for ref, _, _ in day_chapters],
+            proverb=get_proverb(day_num),   # Pv 1 a 31, em ciclo
+            psalm=get_psalm(day_num),        # Sl 1 a 150, em ciclo
+            ...
+        ))`} />
+
+Salmos e Provérbios são tratados separadamente porque têm um papel diferente: são leituras curtas e complementares. Os 150 salmos e 31 provérbios são distribuídos ciclicamente — você lê Sl 1 no dia 1, Sl 2 no dia 2, e ao chegar no Sl 150, reinicia. Isso garante que cada leitura diária tenha uma âncora de sabedoria e um salmo, independente de onde você esteja no plano principal.
+
+### 4. Arquitetura Hexagonal no Front-end (Uma Escolha Não Convencional)
+
+Essa foi a decisão mais experimental. O frontend segue Ports and Adapters: a lógica de negócio vive em `core/usecases/`, completamente desacoplada do framework React. Componentes são "finos" — consomem a store e chamam o controller.
+
+<CodeBlock
+  lang="typescript"
+  filename="core/ports/AssistantRepository.ts"
+  code={`// Apenas contrato, sem implementação
+export interface IAssistantRepository {
+  auth(email: string): Promise<AssistantAuthResponse>;
+  getConversations(token: string): Promise<ConversationSummary[]>;
+  createConversation(token: string): Promise<ConversationDetail>;
+  getChatStreamUrl(token: string, convId: string, message: string): string;
+  // ...
+}`}
+/>
+
+<CodeBlock lang="typescript" filename="core/usecases/AssistantUseCase.ts" code={`// Lógica de negócio sem React
+export class AssistantUseCase {
+  constructor(
+    private repository: IAssistantRepository,  // injetado
+    private storage: IStorageRepository,
+    private store: typeof assistantStore,
+  ) {}
+
+async handleSend(customMsg?: string) {
+const state = this.store.getState();
+const text = (customMsg ?? state.input).trim();
+if (!text || state.streaming || !state.token) return;
+
+    // Toda a lógica de streaming e estado vive aqui; o componente React não sabe como SSE funciona
+    const url = this.repository.getChatStreamUrl(state.token, convId, text);
+    const eventSource = new EventSource(url);
+    // ...
+
+}
+}`} />
+
+O benefício prático: testes unitários para lógica de negócio não precisam montar componentes React. O `AssistantUseCase` é testado com mocks simples das interfaces. Trocar uma API por outra, ou `localStorage` por `sessionStorage`, não toca nenhum componente.
+
+É uma arquitetura mais pesada para um projeto pequeno, mas como peça de portfólio, demonstra pensar além do componente.
+
+### 5. RAG com Fallback (Degradação Graciosa como Princípio)
+
+O `BibleRAGTool` usa ChromaDB com embeddings da OpenAI para buscar na base de conhecimento bíblico. Configurar o ChromaDB localmente pode ser um ponto de fricção. A solução foi um fallback simples por sobreposição de palavras-chave:
+
+<CodeBlock
+  lang="python"
+  filename="assistant/rag.py"
+  code={`def retrieve_context(query: str, top_k: int = 3) -> str:
+    """Recupera contexto bíblico relevante. Usa keyword search como fallback."""
+
+    # Tenta ChromaDB + embeddings primeiro
+    client = _get_chroma_client()
+    if client and settings.openai_api_key:
+        try:
+            collection = client.get_collection("bible_context")
+            results = collection.query(query_texts=[query], n_results=top_k)
+            if results["documents"][0]:
+                return "\\n".join(results["documents"][0])
+        except Exception as e:
+            logger.warning(f"ChromaDB query falhou, usando fallback: {e}")
+
+    # Fallback: busca por sobreposição de palavras-chave
+    return "\\n".join(_keyword_search(query, top_k))`}
+
+/>
+
+Isso significa que o projeto roda localmente mesmo sem uma chave de API de embeddings configurada. O assistente funciona com qualidade menor, mas _funciona_. Em desenvolvimento, isso é valioso.
+
+## O que Foi Deliberadamente Deixado de Fora
+
+Este foi um projeto de fim de semana, então algumas decisões foram pragmáticas.
+
+O **template do PDF** acabou mais simples do que o planejado. A visão inicial era uma capa com fundo azul escuro, tipografia Playfair Display e ornamentos SVG. O que foi entregue funciona, distribui os capítulos corretamente e cabe em A4, mas usa fontes do sistema em vez de editoriais. Essa é a próxima iteração mais importante.
+
+<ArticleImage
+  src="/images/articles/bible/preview-pdf.png"
+  alt="Planner PDF Imprimível do Bible-365"
+  caption="O planner A4 imprimível para acompanhar a leitura diária."
+/>
+
+A **cobertura de testes** no frontend ficou baixa. Os testes do backend cobrem os cenários principais. A arquitetura hexagonal foi projetada exatamente para facilitar testes, mas não houve tempo suficiente para implementá-los no frontend.
+
+A **seção devocional** — a ideia original que iniciou tudo — foi deixada de fora por ora. No futuro, o plano é integrar um devocional gerado dinamicamente para cada leitura do dia. Sem mais 365 arquivos manuais, mas um texto gerado no momento da leitura, contextualizado pelo que o usuário está lendo.
+
+## O Que Este Projeto Significa para Mim
+
+É três coisas ao mesmo tempo:
+
+**Uma ferramenta que vou usar eu mesmo.** Quero criar o hábito de ler a Bíblia este ano. Construí o planner pensando em mim como usuário. Isso muda a qualidade das decisões de produto — você não corta atalhos quando sabe que vai usar o resultado.
+
+**Uma peça concreta de portfólio.** Não é uma lista de tarefas. É um produto com pagamentos reais, um agente de IA, geração de PDF e lógica de negócio não trivial. Para alguém em transição de carreira — saindo de um perfil especialista em front-end para algo mais completo — ter um projeto assim para mostrar vale mais do que qualquer certificado.
+
+**Um experimento de micro-SaaS.** O mercado que esse produto serve é enorme. Milhões de pessoas em comunidades evangélicas e católicas usam planos de leitura bíblica. Se o produto ganhar tração, há espaço para crescer: múltiplos idiomas, planos temáticos, grupos de leitura e integração para anotações. Por ora, é uma ideia com código. Mas é uma ideia que já funciona.
+
+## Reflexão Final
+
+A maior lição do fim de semana não foi técnica. Foi sobre a diferença entre um projeto que você termina e um que você abandona.
+
+A versão anterior — os 365 arquivos Markdown — foi abandonada porque eu era o gargalo. Cada novo conteúdo dependia de mim. A versão atual só precisa que eu mantenha o código: o conteúdo emerge da conversa entre o usuário e o agente.
+
+É a mesma lição que o mercado de trabalho está ensinando aos profissionais de tecnologia: o que você constrói precisa ser mais inteligente do que o que você consegue sustentar manualmente. Automatize o mecânico. Foque no estratégico.
+
+Estou aprendendo isso no código e aplicando na minha carreira.
+
+O projeto está no GitHub. Se você trabalha com IA, plataformas para comunidades religiosas ou simplesmente quer conversar sobre micro-SaaS, fique à vontade para me chamar no LinkedIn.
